@@ -1,6 +1,6 @@
 # Chromex
 
-**TODO: Add description**
+An Elixir implementation of the [Chrome Devtools Protocol](https://chromedevtools.github.io/devtools-protocol/).
 
 ## Installation
 
@@ -18,4 +18,3 @@ end
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/chromex](https://hexdocs.pm/chromex).
-
