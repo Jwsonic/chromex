@@ -12,7 +12,7 @@ defmodule Chromex.Browser do
   # Server callbacks
 
   @default_config %{
-    executable: "chrome",
+    executable: "chromium",
     port: "9222",
     data_dir: "chromex"
   }
