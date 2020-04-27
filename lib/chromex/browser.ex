@@ -1,6 +1,8 @@
 defmodule Chromex.Browser do
   use GenServer
 
+  alias Chromex.Socket
+
   require Logger
 
   # Client methods
@@ -29,6 +31,10 @@ defmodule Chromex.Browser do
     {:ok, state}
   end
 
+  ##
+  ## Port Callbacks
+  ##
+
   @impl true
   def handle_info({_port, {:exit_status, status}}, state) do
     Logger.warn("Browser exited with status: #{status}.")
@@ -40,7 +46,9 @@ defmodule Chromex.Browser do
   def handle_info({_port, {:data, {:eol, "DevTools listening on " <> ws_address}}}, state) do
     Logger.info("Connecting to chrome on '#{ws_address}'.")
 
-    {:noreply, state}
+    {:ok, socket} = Socket.connect(ws_address)
+
+    {:noreply, Map.put(state, :socket, socket)}
   end
 
   @impl true
@@ -51,7 +59,7 @@ defmodule Chromex.Browser do
   end
 
   @impl true
-  def handle_info({_port, message}, state) do
+  def handle_info(message, state) do
     Logger.info("Received unhandled message #{message}.")
 
     {:noreply, state}
