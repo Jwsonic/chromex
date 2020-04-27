@@ -28,7 +28,7 @@ defmodule Chromex.Socket do
 
   @impl true
   def handle_cast({:send, message}, %{gun_pid: gun_pid} = state) when is_bitstring(message) do
-    :gun.ws_send(gun_pid, {:test, message})
+    :gun.ws_send(gun_pid, {:text, message})
 
     {:noreply, state}
   end
@@ -101,7 +101,7 @@ defmodule Chromex.Socket do
         {:error, reason}
     after
       1_000 ->
-        {:error, "Timed out"}
+        {:error, "Timed out."}
     end
   end
 end
