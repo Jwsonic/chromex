@@ -38,8 +38,10 @@ defmodule Chromex.Browser do
 
   @impl true
   def handle_call({:send, msg, _opts}, _from, %{socket: socket} = state) when is_map(msg) do
-    msg = Map.update(msg, :id, 1, fn id -> id end)
-    id = msg[:id]
+    msg = Map.update(msg, "id", 1, fn id -> id end)
+    id = msg["id"]
+
+    Logger.info("Sending message: #{inspect(msg)}")
 
     msg
     |> Jason.encode!()
