@@ -101,7 +101,7 @@ defmodule Chromex.Socket do
       {:gun_error, ^gun_pid, ^ref, reason} ->
         {:error, reason}
     after
-      1_000 ->
+      5_000 ->
         {:error, "Timed out."}
     end
   end
