@@ -40,13 +40,19 @@ defmodule Chromex.Socket do
       ) do
     case frame do
       {:text, message} ->
-        Process.send(stream_to, {:ws_message, message}, [])
+        case Jason.decode(message) do
+          {:ok, data} ->
+            Process.send(stream_to, {:ws_message, data}, [])
 
-        {:noreply, state}
+          {:error, _reason} ->
+            Process.send(stream_to, {:ws_message, message}, [])
+        end
 
       frame ->
         Logger.info("Received WS frame: #{inspect(frame)}.")
     end
+
+    {:noreply, state}
   end
 
   @impl true
@@ -63,13 +69,8 @@ defmodule Chromex.Socket do
     {:noreply, state}
   end
 
-  def handle_info(
-        {:gun_down, pid, :ws, :closed, _status, _headers},
-        %{stream_to: stream_to} = state
-      ) do
-    Process.send(stream_to, :ws_closed, [])
-
-    {:stop, :ws_closed, state}
+  def handle_info({:gun_down, _pid, :ws, :closed, _status, _headers}, state) do
+    {:stop, :closed, state}
   end
 
   @impl true
