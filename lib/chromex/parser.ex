@@ -27,18 +27,22 @@ defmodule Chromex.Parser do
       }
     }
 
-    domain_map = Enum.group_by(domains, &Map.get(&1, "domain")) |> IO.inspect()
+    domain_map =
+      Enum.reduce(domains, %{}, fn domain, acc ->
+        Map.put(acc, domain["domain"], domain)
+      end)
 
     types =
-      domains
-      |> Enum.flat_map(&Map.get(&1, "types", []))
-      |> Enum.reject(&Map.get(&1, "experimental", false))
-      |> Enum.reduce(%{}, fn %{"id" => id} = type, acc ->
-        spec = to_spec(%{"type" => type}, domain_map)
+      domain_map
+      |> Enum.reduce(%{}, fn {name, domain}, acc ->
+        Enum.reduce(domain["types"], acc, fn type, acc ->
+          spec = to_spec(type, name, domain_map)
 
-        # get ref here
-        Map.put(acc, id, spec)
+          Map.put(acc, type["id"], spec)
+        end)
       end)
+
+    types |> Enum.reject(fn {_key, value} -> is_tuple(value) end) |> IO.inspect()
 
     # types
   end
@@ -57,53 +61,66 @@ defmodule Chromex.Parser do
     # Real work goes here
   end
 
-  defp to_spec(%{"type" => type}, refs) do
-    to_spec(type, refs)
+  defp to_spec(%{"type" => type}, domain, domains) do
+    to_spec(type, domain, domains)
   end
 
-  defp to_spec(%{"$ref" => ref}, domains) do
-    [domain, type] =
+  defp to_spec(%{"type" => "object", "properties" => properties}, domain, domains) do
+    specs =
+      Enum.map(properties, fn prop ->
+        {prop, to_spec(prop, domain, domains)}
+      end)
+
+    quote do
+      %{
+        unquote_splicing(specs)
+      }
+    end
+  end
+
+  defp to_spec(%{"$ref" => ref}, domain, domains) do
+    [next_domain, type] =
       case String.split(ref, ".") do
-        [type] -> ["domain", type]
+        [type] -> [domain, type]
         [_domain, _type] = path -> path
       end
 
-    ref = get_in(domains, [domain, "types", type])
+    ref = get_in(domains, [next_domain, "types", type])
 
-    to_spec(ref, domains)
+    to_spec(ref, next_domain, domains)
   end
 
-  defp to_spec("string", _refs) do
+  defp to_spec("string", _domain, _refs) do
     quote do
       binary()
     end
   end
 
-  defp to_spec("boolean", _refs) do
+  defp to_spec("boolean", _domain, _refs) do
     quote do
       boolean()
     end
   end
 
-  defp to_spec("number", _refs) do
+  defp to_spec("number", _domain, _refs) do
     quote do
       float() | integer()
     end
   end
 
-  defp to_spec("integer", _refs) do
+  defp to_spec("integer", _domain, _refs) do
     quote do
       integer()
     end
   end
 
-  defp to_spec("object", _refs) do
+  defp to_spec("object", _domain, _refs) do
     quote do
       map()
     end
   end
 
-  defp to_spec("array", _refs) do
+  defp to_spec("array", _domain, _refs) do
     quote do
       list()
     end
