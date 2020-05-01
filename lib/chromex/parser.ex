@@ -1,5 +1,5 @@
 defmodule Chromex.Parser do
-  @spec types(map()) :: map()
+  @spec types(list(map())) :: map()
   def types(domains) do
     # dag =
     #   Enum.reduce(domains, %{}, fn domain, acc ->
@@ -27,18 +27,20 @@ defmodule Chromex.Parser do
       }
     }
 
+    domain_map = Enum.group_by(domains, &Map.get(&1, "domain")) |> IO.inspect()
+
     types =
       domains
       |> Enum.flat_map(&Map.get(&1, "types", []))
       |> Enum.reject(&Map.get(&1, "experimental", false))
-      |> Enum.reduce(%{}, fn %{"id" => id, "type" => type}, acc ->
-        spec = to_spec(%{"type" => type}, acc)
+      |> Enum.reduce(%{}, fn %{"id" => id} = type, acc ->
+        spec = to_spec(%{"type" => type}, domain_map)
 
         # get ref here
         Map.put(acc, id, spec)
       end)
 
-    types
+    # types
   end
 
   # In th
@@ -59,8 +61,16 @@ defmodule Chromex.Parser do
     to_spec(type, refs)
   end
 
-  defp to_spec(%{"$ref" => ref}, _refs) do
-    ref
+  defp to_spec(%{"$ref" => ref}, domains) do
+    [domain, type] =
+      case String.split(ref, ".") do
+        [type] -> ["domain", type]
+        [_domain, _type] = path -> path
+      end
+
+    ref = get_in(domains, [domain, "types", type])
+
+    to_spec(ref, domains)
   end
 
   defp to_spec("string", _refs) do

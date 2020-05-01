@@ -8,6 +8,8 @@ defmodule Chromex.DevtoolsProtocol.Macro do
 
     domains = Enum.reject(protocol_data["domains"], &experimental?/1)
 
+    Chromex.Parser.types(domains)
+
     # types = build_types(domains)
 
     # types
@@ -66,7 +68,8 @@ defmodule Chromex.DevtoolsProtocol.Macro do
           |> Enum.map(fn param ->
             name_underscore = atom_name(param["name"])
 
-            spec = to_spec(param, types)
+            # to_spec(param, types)
+            spec = nil
 
             quote(do: Keyword.new([{unquote(name_underscore), unquote(spec)}]))
           end)
@@ -125,6 +128,8 @@ defmodule Chromex.DevtoolsProtocol.Macro do
   defp atom_name(name) do
     name |> Macro.underscore() |> String.to_atom()
   end
+
+  defp to_spec(_, _), do: nil
 end
 
 defmodule Chromex.DevtoolsProtocol do
