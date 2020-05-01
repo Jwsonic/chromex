@@ -8,7 +8,20 @@ defmodule Chromex.DevtoolsProtocol.Macro do
 
     domains = Enum.reject(protocol_data["domains"], &experimental?/1)
 
-    Enum.each(domains, &build_domain_module/1)
+    # types = build_types(domains)
+
+    # types
+    # |> inspect()
+    # |> (&File.write!("types.json", &1)).()
+
+    # types =
+    #   Enum.reduce(types, %{}, fn {id, _value}, acc ->
+    #     spec = to_spec(%{"type" => id}, acc)
+
+    #     Map.put(acc, id, spec)
+    #   end)
+
+    # Enum.each(domains, &build_domain_module(&1, types))
 
     version_string = protocol_data["version"]["major"] <> "." <> protocol_data["version"]["minor"]
 
@@ -20,8 +33,10 @@ defmodule Chromex.DevtoolsProtocol.Macro do
     end
   end
 
-  defp build_domain_module(domain) do
+  defp build_domain_module(domain, types) do
     module_name = Module.concat(Chromex.DevtoolsProtocol, domain["domain"])
+
+    IO.inspect(domain["domain"])
 
     commands =
       domain["commands"]
@@ -36,7 +51,6 @@ defmodule Chromex.DevtoolsProtocol.Macro do
           command
           |> Map.get("parameters", [])
           |> Enum.filter(&Map.get(&1, "optional", false))
-          |> Enum.map(&Map.get(&1, "name"))
 
         opts = {:opts, [], module_name}
 
@@ -47,7 +61,19 @@ defmodule Chromex.DevtoolsProtocol.Macro do
           |> Enum.map(&Macro.var(&1, module_name))
           |> Kernel.++([{:\\, [], [opts, []]}])
 
-        params =
+        spec_opts =
+          optional_params
+          |> Enum.map(fn param ->
+            name_underscore = atom_name(param["name"])
+
+            spec = to_spec(param, types)
+
+            quote(do: Keyword.new([{unquote(name_underscore), unquote(spec)}]))
+          end)
+
+        spec_params = Enum.map(required_params, &to_spec(&1, types)) ++ [spec_opts]
+
+        msg_params =
           Enum.map(required_params, fn param ->
             name = param["name"]
             var = name |> atom_name() |> Macro.var(module_name)
@@ -56,17 +82,18 @@ defmodule Chromex.DevtoolsProtocol.Macro do
           end)
 
         quote location: :keep do
-          # @spec unquote(name_underscore)(async: boolean()) :: {:ok, map()} | {:error, String.t()}
+          @spec unquote(name_underscore)(unquote_splicing(spec_params)) ::
+                  {:ok, map()} | {:error, String.t()}
           def unquote(name_underscore)(unquote_splicing(signature_params)) do
             msg = %{
               "method" => unquote(domain["domain"]) <> "." <> unquote(command["name"]),
               "params" => %{
-                unquote_splicing(params)
+                unquote_splicing(msg_params)
               }
             }
 
-            params =
-              unquote(optional_params)
+            msg_params =
+              unquote(Enum.map(optional_params, &Map.get(&1, "name")))
               |> Enum.reduce(msg["params"], fn param, acc ->
                 param_underscore = param |> Macro.underscore() |> String.to_atom()
 
@@ -76,7 +103,7 @@ defmodule Chromex.DevtoolsProtocol.Macro do
                 end
               end)
 
-            msg = Map.put(msg, "params", params)
+            msg = Map.put(msg, "params", msg_params)
 
             Chromex.Browser.send(msg, unquote(opts))
           end

@@ -1,18 +1,7 @@
 defmodule Chromex do
-  @moduledoc """
-  Documentation for `Chromex`.
-  """
+  alias Chromex.DevtoolsProtocol.Page
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Chromex.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def new_page do
+    Page
   end
 end
