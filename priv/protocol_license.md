@@ -1,4 +1,4 @@
-The license below applies only to the file browser_protocol.json
+The license below applies only to the files browser_protocol.json and js_protocol.json
 
 // Copyright 2014 The Chromium Authors. All rights reserved.
 //
