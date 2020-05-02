@@ -1,68 +1,58 @@
 defmodule Chromex.Parser do
   @spec types(list(map())) :: map()
   def types(domains) do
-    # dag =
-    #   Enum.reduce(domains, %{}, fn domain, acc ->
-    #     name = Map.get(domain, "domain")
-    #     deps = Map.get(domain, "dependencies", [])
-    #     Map.put(acc, name, deps)
-    #   end)
-    #   |> IO.inspect()
-
     # Example data
-    %{
-      "Animation" => %{
-        "Animation" => %{
-          "id" => {:binary, [], []},
-          "name" => {:binary, [], []},
-          "pausedState" => {:boolean, [], []},
-          "playState" => {:binary, [], []},
-          "playbackRate" => {:|, [], [{:float, [], []}, {:integer, [], []}]},
-          "startTime" => {:|, [], [{:float, [], []}, {:integer, [], []}]},
-          "currentTime" => {:|, [], [{:float, [], []}, {:integer, [], []}]},
-          "type" => {:|, [], ["CSSTransition", {:|, [], ["CSSAnimation", "WebAnimation"]}]},
-          "source" => "AnimationEffect",
-          "cssId" => {:binary, [], []}
-        }
-      }
-    }
+    # %{
+    #   "Animation" => %{
+    #     "Animation" => %{
+    #       "id" => {:binary, [], []},
+    #       "name" => {:binary, [], []},
+    #       "pausedState" => {:boolean, [], []},
+    #       "playState" => {:binary, [], []},
+    #       "playbackRate" => {:|, [], [{:float, [], []}, {:integer, [], []}]},
+    #       "startTime" => {:|, [], [{:float, [], []}, {:integer, [], []}]},
+    #       "currentTime" => {:|, [], [{:float, [], []}, {:integer, [], []}]},
+    #       "type" => {:|, [], ["CSSTransition", {:|, [], ["CSSAnimation", "WebAnimation"]}]},
+    #       "source" => "AnimationEffect",
+    #       "cssId" => {:binary, [], []}
+    #     }
+    #   }
+    # }
 
     domain_map =
-      Enum.reduce(domains, %{}, fn domain, acc ->
+      domains
+      |> Enum.reject(&Map.get(&1, "experimental", false))
+      |> Enum.reduce(%{}, fn domain, acc ->
+        types =
+          domain["types"]
+          |> Enum.reject(&Map.get(&1, "experimental", false))
+          |> Enum.reduce(acc, fn type, acc ->
+            Map.put(acc, type["id"], type)
+          end)
+
+        domain = Map.put(domain, "types", types)
+
         Map.put(acc, domain["domain"], domain)
       end)
 
     types =
       domain_map
+      |> Enum.filter(fn {id, _domain} -> id == "Debugger" end)
       |> Enum.reduce(%{}, fn {name, domain}, acc ->
-        Enum.reduce(domain["types"], acc, fn type, acc ->
-          spec = to_spec(type, name, domain_map)
+        domain_types =
+          domain["types"]
+          |> IO.inspect(label: :pre)
+          |> Enum.reduce(%{}, fn {type_name, type}, acc ->
+            spec = to_spec(type, name, domain_map)
 
-          Map.put(acc, type["id"], spec)
-        end)
+            Map.put(acc, type_name, spec)
+          end)
+
+        Map.put(acc, name, domain_types)
       end)
-
-    types |> Enum.reject(fn {_key, value} -> is_tuple(value) end) |> IO.inspect()
+      |> IO.inspect(label: :post)
 
     # types
-  end
-
-  # In th
-  defp build_types(_domains, domain_name, types) when is_map_key(types, domain_name) do
-    types
-  end
-
-  defp build_types(domains, domain, types) do
-    # Build out any dependencies this domain has first
-    domain["dependencies"]
-    |> Enum.map(fn dep -> Enum.find(domains, fn d -> d["domain"] == dep end) end)
-    |> Enum.reduce(types, &build_types(domains, &1, types))
-
-    # Real work goes here
-  end
-
-  defp to_spec(%{"type" => type}, domain, domains) do
-    to_spec(type, domain, domains)
   end
 
   defp to_spec(%{"type" => "object", "properties" => properties}, domain, domains) do
@@ -78,12 +68,18 @@ defmodule Chromex.Parser do
     end
   end
 
+  defp to_spec(%{"type" => type}, domain, domains) do
+    to_spec(type, domain, domains)
+  end
+
   defp to_spec(%{"$ref" => ref}, domain, domains) do
     [next_domain, type] =
       case String.split(ref, ".") do
         [type] -> [domain, type]
         [_domain, _type] = path -> path
       end
+
+    # |> IO.inspect()
 
     ref = get_in(domains, [next_domain, "types", type])
 

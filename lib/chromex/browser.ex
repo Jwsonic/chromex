@@ -32,6 +32,7 @@ defmodule Chromex.Browser do
     {:ok, state}
   end
 
+  @spec send(msg :: map(), async: boolean()) :: map() | :ok
   def send(msg, opts) do
     GenServer.call(__MODULE__, {:send, msg, opts})
   end

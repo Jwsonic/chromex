@@ -1,7 +1,7 @@
 defmodule Chromex do
-  alias Chromex.DevtoolsProtocol.Page
+  alias Chromex.DevtoolsProtocol.Debugger
 
   def new_page do
-    Page
+    Debugger.continue_to_location("", target_call_frames: "")
   end
 end

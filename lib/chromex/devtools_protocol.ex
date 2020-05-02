@@ -1,137 +1,138 @@
-defmodule Chromex.DevtoolsProtocol.Macro do
-  @protocol_file "browser_protocol.json"
+# defmodule Chromex.DevtoolsProtocol.Macro do
+#   @protocol_files ["browser_protocol.json", "js_protocol.json"]
 
-  defmacro __before_compile__(_env) do
-    protocol_file = :chromex |> :code.priv_dir() |> Path.join(@protocol_file)
+#   defmacro __before_compile__(_env) do
+#     domains =
+#       @protocol_files
+#       |> Enum.map(fn file_name ->
+#         :chromex |> :code.priv_dir() |> Path.join(file_name)
+#       end)
+#       |> Enum.map(&File.read!/1)
+#       |> Enum.map(&Jason.encode!/1)
+#       |> Enum.flat_map(&Map.get(&1, "domains", []))
+#       |> Enum.filter(&stable?/1)
+#       |> Enum.map(fn domain ->
+#         commands = Enum.filter(domain["commands"], &stable?/1)
+#         types = Enum.filter(domain["types"], &stable?/1)
+#         events = Enum.filter(domain["events"], &stable?/1)
 
-    protocol_data = protocol_file |> File.read!() |> Jason.decode!()
+#         %{domain | "commands" => commands, "events" => events, "types" => types}
+#       end)
 
-    domains = Enum.reject(protocol_data["domains"], &experimental?/1)
+#     # protocol_data = protocol_file |> File.read!() |> Jason.decode!()
 
-    Chromex.Parser.types(domains)
+#     # domains = Enum.reject(protocol_data["domains"], &experimental?/1)
 
-    # types = build_types(domains)
+#     # Chromex.Parser.types(domains)
 
-    # types
-    # |> inspect()
-    # |> (&File.write!("types.json", &1)).()
+#     # Enum.each(domains, &build_domain_module(&1, types))
 
-    # types =
-    #   Enum.reduce(types, %{}, fn {id, _value}, acc ->
-    #     spec = to_spec(%{"type" => id}, acc)
+#     quote location: :keep do
+#       @version "1.3"
 
-    #     Map.put(acc, id, spec)
-    #   end)
+#       def version, do: @version
+#     end
+#   end
 
-    # Enum.each(domains, &build_domain_module(&1, types))
+#   defp build_domain_module(domain, types) do
+#     module_name = Module.concat(Chromex.DevtoolsProtocol, domain["domain"])
 
-    version_string = protocol_data["version"]["major"] <> "." <> protocol_data["version"]["minor"]
+#     IO.inspect(domain["domain"])
 
-    quote location: :keep do
-      @external_resource unquote(protocol_file)
-      @version unquote(version_string)
+#     commands =
+#       domain["commands"]
+#       |> Enum.reject(&experimental?/1)
+#       |> Enum.map(fn command ->
+#         name_underscore = atom_name(command["name"])
 
-      def version, do: @version
-    end
-  end
+#         required_params =
+#           command |> Map.get("parameters", []) |> Enum.reject(&Map.get(&1, "optional", false))
 
-  defp build_domain_module(domain, types) do
-    module_name = Module.concat(Chromex.DevtoolsProtocol, domain["domain"])
+#         optional_params =
+#           command
+#           |> Map.get("parameters", [])
+#           |> Enum.filter(&Map.get(&1, "optional", false))
 
-    IO.inspect(domain["domain"])
+#         opts = {:opts, [], module_name}
 
-    commands =
-      domain["commands"]
-      |> Enum.reject(&experimental?/1)
-      |> Enum.map(fn command ->
-        name_underscore = atom_name(command["name"])
+#         signature_params =
+#           required_params
+#           |> Enum.map(&Map.get(&1, "name"))
+#           |> Enum.map(&atom_name/1)
+#           |> Enum.map(&Macro.var(&1, module_name))
+#           |> Kernel.++([{:\\, [], [opts, []]}])
 
-        required_params =
-          command |> Map.get("parameters", []) |> Enum.reject(&Map.get(&1, "optional", false))
+#         spec_opts =
+#           optional_params
+#           |> Enum.map(fn param ->
+#             name_underscore = atom_name(param["name"])
 
-        optional_params =
-          command
-          |> Map.get("parameters", [])
-          |> Enum.filter(&Map.get(&1, "optional", false))
+#             # to_spec(param, types)
+#             spec = nil
 
-        opts = {:opts, [], module_name}
+#             quote(do: Keyword.new([{unquote(name_underscore), unquote(spec)}]))
+#           end)
 
-        signature_params =
-          required_params
-          |> Enum.map(&Map.get(&1, "name"))
-          |> Enum.map(&atom_name/1)
-          |> Enum.map(&Macro.var(&1, module_name))
-          |> Kernel.++([{:\\, [], [opts, []]}])
+#         spec_params = Enum.map(required_params, &to_spec(&1, types)) ++ [spec_opts]
 
-        spec_opts =
-          optional_params
-          |> Enum.map(fn param ->
-            name_underscore = atom_name(param["name"])
+#         msg_params =
+#           Enum.map(required_params, fn param ->
+#             name = param["name"]
+#             var = name |> atom_name() |> Macro.var(module_name)
 
-            # to_spec(param, types)
-            spec = nil
+#             {name, var}
+#           end)
 
-            quote(do: Keyword.new([{unquote(name_underscore), unquote(spec)}]))
-          end)
+#         quote location: :keep do
+#           @spec unquote(name_underscore)(unquote_splicing(spec_params)) ::
+#                   {:ok, map()} | {:error, String.t()}
+#           def unquote(name_underscore)(unquote_splicing(signature_params)) do
+#             msg = %{
+#               "method" => unquote(domain["domain"]) <> "." <> unquote(command["name"]),
+#               "params" => %{
+#                 unquote_splicing(msg_params)
+#               }
+#             }
 
-        spec_params = Enum.map(required_params, &to_spec(&1, types)) ++ [spec_opts]
+#             msg_params =
+#               unquote(Enum.map(optional_params, &Map.get(&1, "name")))
+#               |> Enum.reduce(msg["params"], fn param, acc ->
+#                 param_underscore = param |> Macro.underscore() |> String.to_atom()
 
-        msg_params =
-          Enum.map(required_params, fn param ->
-            name = param["name"]
-            var = name |> atom_name() |> Macro.var(module_name)
+#                 case Keyword.get(unquote(opts), param_underscore) do
+#                   nil -> acc
+#                   value -> Map.put(acc, param, value)
+#                 end
+#               end)
 
-            {name, var}
-          end)
+#             msg = Map.put(msg, "params", msg_params)
 
-        quote location: :keep do
-          @spec unquote(name_underscore)(unquote_splicing(spec_params)) ::
-                  {:ok, map()} | {:error, String.t()}
-          def unquote(name_underscore)(unquote_splicing(signature_params)) do
-            msg = %{
-              "method" => unquote(domain["domain"]) <> "." <> unquote(command["name"]),
-              "params" => %{
-                unquote_splicing(msg_params)
-              }
-            }
+#             Chromex.Browser.send(msg, unquote(opts))
+#           end
+#         end
+#       end)
 
-            msg_params =
-              unquote(Enum.map(optional_params, &Map.get(&1, "name")))
-              |> Enum.reduce(msg["params"], fn param, acc ->
-                param_underscore = param |> Macro.underscore() |> String.to_atom()
+#     contents =
+#       quote location: :keep do
+#         @moduledoc unquote(domain["description"])
 
-                case Keyword.get(unquote(opts), param_underscore) do
-                  nil -> acc
-                  value -> Map.put(acc, param, value)
-                end
-              end)
+#         unquote(commands)
+#       end
 
-            msg = Map.put(msg, "params", msg_params)
+#     Module.create(module_name, contents, Macro.Env.location(__ENV__))
+#   end
 
-            Chromex.Browser.send(msg, unquote(opts))
-          end
-        end
-      end)
+#   defp stable?(%{"experimental" => true}), do: false
+#   defp stable?(%{"deprecated" => true}), do: false
+#   defp stable?(_map), do: true
 
-    contents =
-      quote location: :keep do
-        @moduledoc unquote(domain["description"])
+#   defp atom_name(name) do
+#     name |> Macro.underscore() |> String.to_atom()
+#   end
 
-        unquote(commands)
-      end
+#   defp to_spec(_, _), do: nil
+# end
 
-    Module.create(module_name, contents, Macro.Env.location(__ENV__))
-  end
-
-  defp experimental?(map), do: Map.get(map, "experimental", false)
-
-  defp atom_name(name) do
-    name |> Macro.underscore() |> String.to_atom()
-  end
-
-  defp to_spec(_, _), do: nil
-end
-
-defmodule Chromex.DevtoolsProtocol do
-  @before_compile Chromex.DevtoolsProtocol.Macro
-end
+# defmodule Chromex.DevtoolsProtocol do
+#   @before_compile Chromex.DevtoolsProtocol.Macro
+# end
