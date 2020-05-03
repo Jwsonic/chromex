@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Debugger do
   @moduledoc """
-   Debugger domain exposes JavaScript debugging capabilities. It allows setting and   removing breakpoints, stepping through execution, exploring stack traces, etc.
+    Debugger domain exposes JavaScript debugging capabilities. It allows setting and  removing breakpoints, stepping through execution, exploring stack traces, etc.
   """
 
   @type break_location :: String.t()

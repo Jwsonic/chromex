@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Network do
   @moduledoc """
-   Network domain allows tracking network activities of the page. It exposes information   about http, file, data and other requests and responses, their headers, bodies, timing,   etc.
+    Network domain allows tracking network activities of the page. It exposes information  about http, file, data and other requests and responses, their headers, bodies, timing,  etc.
   """
 
   # The reason why request was blocked.

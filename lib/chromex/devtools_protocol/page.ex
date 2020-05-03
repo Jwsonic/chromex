@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Page do
   @moduledoc """
-   Actions and events related to the inspected page belong to the page domain.
+    Actions and events related to the inspected page belong to the page domain.
   """
 
   # Error while paring app manifest.

@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Target do
   @moduledoc """
-   Supports additional targets discovery and allows to attach to them.
+    Supports additional targets discovery and allows to attach to them.
   """
 
   # Unique identifier of attached debugging session.

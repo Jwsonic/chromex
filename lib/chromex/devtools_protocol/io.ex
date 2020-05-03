@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Io do
   @moduledoc """
-   Input/Output operations for streams produced by DevTools.
+    Input/Output operations for streams produced by DevTools.
   """
 
   # This is either obtained from another method or specifed as 'blob:&lt;uuid&gt;' where'&lt;uuid&gt' is an UUID of a Blob.

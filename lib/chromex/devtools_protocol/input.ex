@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Input do
   @moduledoc """
-   
+    
   """
 
   @type mouse_button :: String.t()

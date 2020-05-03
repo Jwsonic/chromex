@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Emulation do
   @moduledoc """
-   This domain emulates different environments for the page.
+    This domain emulates different environments for the page.
   """
 
   @type media_feature :: String.t()

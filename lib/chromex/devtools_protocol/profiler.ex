@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Profiler do
   @moduledoc """
-   
+    
   """
 
   # Coverage data for a source range.

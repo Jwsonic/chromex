@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Browser do
   @moduledoc """
-   The Browser domain defines methods and events for browser managing.
+    The Browser domain defines methods and events for browser managing.
   """
 
   @doc """

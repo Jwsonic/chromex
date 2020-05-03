@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Domdebugger do
   @moduledoc """
-   DOM debugging allows setting breakpoints on particular DOM operations and events.   JavaScript execution will stop on these operations as if there was a regular breakpoint   set.
+    DOM debugging allows setting breakpoints on particular DOM operations and events.  JavaScript execution will stop on these operations as if there was a regular breakpoint  set.
   """
 
   # DOM breakpoint type.

@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Performance do
   @moduledoc """
-   
+    
   """
 
   # Run-time execution metric.

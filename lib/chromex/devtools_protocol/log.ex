@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Log do
   @moduledoc """
-   Provides access to log entries.
+    Provides access to log entries.
   """
 
   # Log entry.

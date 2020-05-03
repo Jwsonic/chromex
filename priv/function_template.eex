@@ -1,0 +1,24 @@
+@doc """
+  <%= doc %>
+"""
+@spec <%= name %>(<%= spec_params %>) :: <%= spec_result %>
+def <%= name %>(<%= signature_params %> opts \\ []) do
+  msg = %{
+    <%= msg_contents %>
+  }
+
+
+  async = Keyword.get(opts, :async, false)
+
+  <%= if param_keys != "" do %>
+  params = reduce_opts([<%= param_keys %>], opts)
+
+
+  msg
+  |> Map.put("params", params)
+  |> Chromex.Browser.send([async: async])
+  <% else %>
+
+  Chromex.Browser.send(msg, [async: async])
+  <% end %>
+end

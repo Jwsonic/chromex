@@ -1,6 +1,6 @@
 defmodule Chromex.DevtoolsProtocol.Security do
   @moduledoc """
-   Security
+    Security
   """
 
   # The action to take when a certificate error occurs. continue will continue processing therequest and cancel will cancel the request.

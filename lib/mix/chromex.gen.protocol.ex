@@ -13,9 +13,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
   def run(_args) do
     domains =
       @protocol_files
-      |> Enum.map(fn file_name ->
-        :chromex |> :code.priv_dir() |> Path.join(file_name)
-      end)
+      |> Enum.map(&path_priv_file/1)
       |> Enum.map(&File.read!/1)
       |> Enum.map(&Jason.decode!/1)
       |> Enum.flat_map(&Map.get(&1, "domains", []))
@@ -37,58 +35,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
     :ok
   end
 
-  @template """
-  defmodule Chromex.DevtoolsProtocol.<%= module_name %> do
-    @moduledoc \"\"\"
-  <%= for line <- module_doc do %>  <%= line %><% end %>
-    \"\"\"
-
-
-    <%= types %>
-
-
-    <%= functions %>
-
-
-    <%= if include_reduce_opts do %>
-    defp reduce_opts(keys, opts) do
-      keys
-      |> Enum.map(fn key -> {key, Keyword.get(opts, key, :missing)} end)
-      |> Enum.reduce(%{}, fn
-        {_key, :missing}, acc -> acc
-        {key, value}, acc -> Map.put(acc, key, value)
-      end)
-    end
-    <% end %>
-  end
-  """
-
-  @function_template """
-  @doc \"\"\"
-    <%= doc %>
-  \"\"\"
-  @spec <%= name %>(<%= spec_params %>) :: <%= spec_result %>
-  def <%= name %>(<%= signature_params %> opts \\\\ []) do
-    msg = %{
-      <%= msg_contents %>
-    }
-
-
-    async = Keyword.get(opts, :async, false)
-
-    <%= if param_keys != "" do %>
-    params = reduce_opts([<%= param_keys %>], opts)
-
-
-    msg
-    |> Map.put("params", params)
-    |> Chromex.Browser.send([async: async])
-    <% else %>
-
-    Chromex.Browser.send(msg, [async: async])
-    <% end %>
-  end
-  """
+  @function_template "function_template.eex"
 
   defp build_module(
          domains,
@@ -202,7 +149,9 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
           spec_result: "%{}"
         ]
 
-        EEx.eval_string(@function_template, bindings)
+        @function_template
+        |> path_priv_file()
+        |> EEx.eval_file(bindings)
       end)
       |> Enum.join("\n\n")
 
@@ -236,13 +185,11 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
       types: types
     ]
 
-    content = EEx.eval_string(@template, bindings)
+    write_file(module_name, bindings)
+  end
 
-    file_name = name |> Macro.underscore() |> Kernel.<>(".ex")
-
-    @file_dir
-    |> Path.join(file_name)
-    |> File.write!(content)
+  defp path_priv_file(file_name) do
+    :chromex |> :code.priv_dir() |> Path.join(file_name)
   end
 
   defp stabilize(domain, sub_domain, key) do
@@ -295,5 +242,17 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
   defp to_spec(type, _domains) when is_bitstring(type) do
     Map.get(@specs, type, "String.t()")
+  end
+
+  @module_template "module_template.eex"
+
+  defp write_file(module_name, bindings) do
+    content = @module_template |> path_priv_file() |> EEx.eval_file(bindings)
+
+    file_name = module_name |> Macro.underscore() |> Kernel.<>(".ex")
+
+    @file_dir
+    |> Path.join(file_name)
+    |> File.write!(content)
   end
 end
