@@ -4,10 +4,14 @@ defmodule Chromex.DevtoolsProtocol.<%= module_name %> do
   """
 
 
-  <%= types %>
+  <%= for type <- types do %>
+  <%= type %>
+  <% end %>
 
 
-  <%= functions %>
+  <%= for func <- functions do %>
+  <%= func %>
+  <% end %>
 
 
   <%= if include_reduce_opts do %>

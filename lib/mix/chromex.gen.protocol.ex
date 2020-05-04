@@ -21,7 +21,6 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
       |> Enum.map(fn domain ->
         domain
         |> stabilize("commands", "name")
-        |> stabilize("types", "id")
         |> stabilize("events", "name")
       end)
       |> key_by("domain")
@@ -29,7 +28,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
     File.rm_rf!(@file_dir)
     File.mkdir_p!(@file_dir)
 
-    Enum.each(domains, fn {_name, domain} -> build_module(domains, domain) end)
+    Enum.each(domains, fn {_name, domain} -> build_module(domain) end)
 
     System.cmd("mix", ["format"])
     :ok
@@ -37,10 +36,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
   @function_template "function_template.eex"
 
-  defp build_module(
-         domains,
-         %{"domain" => name, "commands" => commands, "types" => types} = domain
-       ) do
+  defp build_module(%{"domain" => name, "commands" => commands, "types" => types} = domain) do
     module_name = String.capitalize(name)
 
     module_doc =
@@ -62,7 +58,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
         fn acc -> {:cont, acc, ""} end
       )
 
-    allowed_types = MapSet.new(types, &elem(&1, 0))
+    allowed_types = MapSet.new(types)
 
     include_reduce_opts =
       commands
@@ -111,13 +107,13 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
           optional_params
           |> Kernel.++([%{"name" => "async", "type" => "boolean"}])
           |> Enum.map(fn %{"name" => name} = msg ->
-            Macro.underscore(name) <> ": " <> to_spec(msg, domains)
+            Macro.underscore(name) <> ": " <> to_spec(msg)
           end)
 
         spec_params =
           required_params
           |> Enum.map(fn %{"name" => name} = param ->
-            spec = to_spec(param, domains)
+            spec = to_spec(param)
 
             "#{name} :: #{spec}"
           end)
@@ -153,13 +149,14 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
         |> path_priv_file()
         |> EEx.eval_file(bindings)
       end)
-      |> Enum.join("\n\n")
 
     types =
       types
-      |> Enum.map(fn {name, type} ->
-        name = name |> Macro.underscore() |> (&Map.get(@reserved_names, &1, &1)).()
-        spec = to_spec(type, domains)
+      |> Enum.map(fn type ->
+        name =
+          type |> Map.get("id") |> Macro.underscore() |> (&Map.get(@reserved_names, &1, &1)).()
+
+        spec = to_spec(type)
 
         doc =
           type
@@ -175,7 +172,6 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
         "#{prepend}#{doc}\n@type #{name} :: #{spec}"
       end)
-      |> Enum.join("\n\n")
 
     bindings = [
       functions: functions,
@@ -218,18 +214,21 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
     params |> Enum.join(", ") |> Kernel.<>(", ")
   end
 
-  @specs %{
-    "boolean" => "boolean()",
-    "integer" => "integer()",
-    "number" => "integer() | float()",
-    "string" => "String.t()"
-  }
+  defp to_spec(%{"type" => "object", "properties" => properties}) do
+    specs =
+      properties
+      |> Enum.map(&to_spec/1)
+      |> Enum.zip(properties)
+      |> Enum.map(fn
+        {spec, %{"name" => prop, "optional" => true}} -> "optional(:\"#{prop}\") => #{spec}"
+        {spec, %{"name" => prop}} -> "required(:\"#{prop}\") => #{spec}"
+      end)
+      |> Enum.join(", ")
 
-  defp to_spec(%{"type" => type}, domains) do
-    to_spec(type, domains)
+    "%{#{specs}}"
   end
 
-  defp to_spec(%{"$ref" => ref}, _domains) do
+  defp to_spec(%{"$ref" => ref}) do
     case String.split(ref, ".") do
       [ref] ->
         ref |> Macro.underscore() |> Kernel.<>("()")
@@ -240,8 +239,23 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
     end
   end
 
-  defp to_spec(type, _domains) when is_bitstring(type) do
-    Map.get(@specs, type, "String.t()")
+  defp to_spec(%{"type" => "array", "items" => type}) do
+    spec = to_spec(type)
+
+    "[#{spec}]"
+  end
+
+  @specs %{
+    "boolean" => "boolean()",
+    "integer" => "integer()",
+    "number" => "integer() | float()",
+    "string" => "String.t()",
+    "object" => "map()",
+    "any" => "any()"
+  }
+
+  defp to_spec(%{"type" => type}) do
+    Map.get(@specs, type, "broken_type")
   end
 
   @module_template "module_template.eex"
