@@ -3,26 +3,42 @@ defmodule Chromex.DevtoolsProtocol.Page do
     Actions and events related to the inspected page belong to the page domain.
   """
 
-  # Error while paring app manifest.
-  @type app_manifest_error :: String.t()
-
-  # Javascript dialog type.
-  @type dialog_type :: String.t()
-
-  # Information about the Frame on the page.
-  @type frame :: String.t()
-
   # Unique frame identifier.
   @type frame_id :: String.t()
 
+  # Information about the Frame on the page.
+  @type frame :: %{
+          required(:id) => frame_id(),
+          optional(:parentId) => String.t(),
+          required(:loaderId) => Network.loader_id(),
+          optional(:name) => String.t(),
+          required(:url) => String.t(),
+          optional(:urlFragment) => String.t(),
+          required(:securityOrigin) => String.t(),
+          required(:mimeType) => String.t(),
+          optional(:unreachableUrl) => String.t()
+        }
+
+  # Information about the Resource on the page.
+  @type frame_resource :: %{
+          required(:url) => String.t(),
+          required(:type) => Network.resource_type(),
+          required(:mimeType) => String.t(),
+          optional(:lastModified) => Network.time_since_epoch(),
+          optional(:contentSize) => integer() | float(),
+          optional(:failed) => boolean(),
+          optional(:canceled) => boolean()
+        }
+
+  # Information about the Frame hierarchy along with their cached resources.
+  @type frame_resource_tree :: %{
+          required(:frame) => frame(),
+          optional(:childFrames) => [frame_resource_tree()],
+          required(:resources) => [frame_resource()]
+        }
+
   # Information about the Frame hierarchy.
-  @type frame_tree :: String.t()
-
-  # Layout viewport position and dimensions.
-  @type layout_viewport :: String.t()
-
-  # Navigation history entry.
-  @type navigation_entry :: String.t()
+  @type frame_tree :: %{required(:frame) => frame(), optional(:childFrames) => [frame_tree()]}
 
   # Unique script identifier.
   @type script_identifier :: String.t()
@@ -30,11 +46,100 @@ defmodule Chromex.DevtoolsProtocol.Page do
   # Transition type.
   @type transition_type :: String.t()
 
-  # Viewport for capturing screenshot.
-  @type viewport :: String.t()
+  # Navigation history entry.
+  @type navigation_entry :: %{
+          required(:id) => integer(),
+          required(:url) => String.t(),
+          required(:userTypedURL) => String.t(),
+          required(:title) => String.t(),
+          required(:transitionType) => transition_type()
+        }
+
+  # Screencast frame metadata.
+  @type screencast_frame_metadata :: %{
+          required(:offsetTop) => integer() | float(),
+          required(:pageScaleFactor) => integer() | float(),
+          required(:deviceWidth) => integer() | float(),
+          required(:deviceHeight) => integer() | float(),
+          required(:scrollOffsetX) => integer() | float(),
+          required(:scrollOffsetY) => integer() | float(),
+          optional(:timestamp) => Network.time_since_epoch()
+        }
+
+  # Javascript dialog type.
+  @type dialog_type :: String.t()
+
+  # Error while paring app manifest.
+  @type app_manifest_error :: %{
+          required(:message) => String.t(),
+          required(:critical) => integer(),
+          required(:line) => integer(),
+          required(:column) => integer()
+        }
+
+  # Parsed app manifest properties.
+  @type app_manifest_parsed_properties :: %{required(:scope) => String.t()}
+
+  # Layout viewport position and dimensions.
+  @type layout_viewport :: %{
+          required(:pageX) => integer(),
+          required(:pageY) => integer(),
+          required(:clientWidth) => integer(),
+          required(:clientHeight) => integer()
+        }
 
   # Visual viewport position, dimensions, and scale.
-  @type visual_viewport :: String.t()
+  @type visual_viewport :: %{
+          required(:offsetX) => integer() | float(),
+          required(:offsetY) => integer() | float(),
+          required(:pageX) => integer() | float(),
+          required(:pageY) => integer() | float(),
+          required(:clientWidth) => integer() | float(),
+          required(:clientHeight) => integer() | float(),
+          required(:scale) => integer() | float(),
+          optional(:zoom) => integer() | float()
+        }
+
+  # Viewport for capturing screenshot.
+  @type viewport :: %{
+          required(:x) => integer() | float(),
+          required(:y) => integer() | float(),
+          required(:width) => integer() | float(),
+          required(:height) => integer() | float(),
+          required(:scale) => integer() | float()
+        }
+
+  # Generic font families collection.
+  @type font_families :: %{
+          optional(:standard) => String.t(),
+          optional(:fixed) => String.t(),
+          optional(:serif) => String.t(),
+          optional(:sansSerif) => String.t(),
+          optional(:cursive) => String.t(),
+          optional(:fantasy) => String.t(),
+          optional(:pictograph) => String.t()
+        }
+
+  # Default font sizes.
+  @type font_sizes :: %{optional(:standard) => integer(), optional(:fixed) => integer()}
+
+  @type client_navigation_reason :: String.t()
+
+  @type client_navigation_disposition :: String.t()
+
+  @type installability_error_argument :: %{
+          required(:name) => String.t(),
+          required(:value) => String.t()
+        }
+
+  # The installability error
+  @type installability_error :: %{
+          required(:errorId) => String.t(),
+          required(:errorArguments) => [installability_error_argument()]
+        }
+
+  # The referring-policy used for the navigation.
+  @type referrer_policy :: String.t()
 
   @doc """
     Evaluates given script in every frame upon creation (before loading frame's scripts).
@@ -75,7 +180,6 @@ defmodule Chromex.DevtoolsProtocol.Page do
   @spec capture_screenshot(
           format: String.t(),
           quality: integer(),
-          clip: viewport(),
           from_surface: boolean(),
           async: boolean()
         ) :: %{}
@@ -84,7 +188,7 @@ defmodule Chromex.DevtoolsProtocol.Page do
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:format, :quality, :clip, :from_surface], opts)
+    params = reduce_opts([:format, :quality, :from_surface], opts)
 
     msg
     |> Map.put("params", params)
@@ -207,12 +311,7 @@ defmodule Chromex.DevtoolsProtocol.Page do
   @doc """
     Navigates current page to the given URL.
   """
-  @spec navigate(url :: String.t(),
-          referrer: String.t(),
-          transition_type: transition_type(),
-          frame_id: frame_id(),
-          async: boolean()
-        ) :: %{}
+  @spec navigate(url :: String.t(), referrer: String.t(), async: boolean()) :: %{}
   def navigate(url, opts \\ []) do
     msg = %{
       "url" => url
@@ -220,7 +319,7 @@ defmodule Chromex.DevtoolsProtocol.Page do
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:referrer, :transition_type, :frame_id], opts)
+    params = reduce_opts([:referrer], opts)
 
     msg
     |> Map.put("params", params)

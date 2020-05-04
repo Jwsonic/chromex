@@ -3,10 +3,13 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
     This domain emulates different environments for the page.
   """
 
-  @type media_feature :: String.t()
-
   # Screen orientation.
-  @type screen_orientation :: String.t()
+  @type screen_orientation :: %{required(:type) => String.t(), required(:angle) => integer()}
+
+  @type media_feature :: %{required(:name) => String.t(), required(:value) => String.t()}
+
+  # advance: If the scheduler runs out of immediate work, the virtual time base may fast forward toallow the next delayed task (if any) to run; pause: The virtual time base may not advance;pauseIfNetworkFetchesPending: The virtual time base may not advance if there are any pendingresource fetches.
+  @type virtual_time_policy :: String.t()
 
   @doc """
     Tells whether emulation is supported.
@@ -70,7 +73,6 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
           position_x: integer(),
           position_y: integer(),
           dont_set_visible_size: boolean(),
-          screen_orientation: screen_orientation(),
           async: boolean()
         ) :: %{}
   def set_device_metrics_override(width, height, device_scale_factor, mobile, opts \\ []) do
@@ -85,15 +87,7 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
 
     params =
       reduce_opts(
-        [
-          :scale,
-          :screen_width,
-          :screen_height,
-          :position_x,
-          :position_y,
-          :dont_set_visible_size,
-          :screen_orientation
-        ],
+        [:scale, :screen_width, :screen_height, :position_x, :position_y, :dont_set_visible_size],
         opts
       )
 
@@ -105,7 +99,8 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
   @doc """
     Emulates the given media type or media feature for CSS media queries.
   """
-  @spec set_emulated_media(media: String.t(), features: String.t(), async: boolean()) :: %{}
+  @spec set_emulated_media(media: String.t(), features: [media_feature()], async: boolean()) ::
+          %{}
   def set_emulated_media(opts \\ []) do
     msg = %{}
 

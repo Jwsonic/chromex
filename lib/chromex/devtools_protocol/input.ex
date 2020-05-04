@@ -3,19 +3,28 @@ defmodule Chromex.DevtoolsProtocol.Input do
     
   """
 
+  @type touch_point :: %{
+          required(:x) => integer() | float(),
+          required(:y) => integer() | float(),
+          optional(:radiusX) => integer() | float(),
+          optional(:radiusY) => integer() | float(),
+          optional(:rotationAngle) => integer() | float(),
+          optional(:force) => integer() | float(),
+          optional(:id) => integer() | float()
+        }
+
+  @type gesture_source_type :: String.t()
+
   @type mouse_button :: String.t()
 
   # UTC time in seconds, counted from January 1, 1970.
   @type time_since_epoch :: integer() | float()
-
-  @type touch_point :: String.t()
 
   @doc """
     Dispatches a key event to the page.
   """
   @spec dispatch_key_event(type :: String.t(),
           modifiers: integer(),
-          timestamp: time_since_epoch(),
           text: String.t(),
           unmodified_text: String.t(),
           key_identifier: String.t(),
@@ -40,7 +49,6 @@ defmodule Chromex.DevtoolsProtocol.Input do
       reduce_opts(
         [
           :modifiers,
-          :timestamp,
           :text,
           :unmodified_text,
           :key_identifier,
@@ -69,8 +77,6 @@ defmodule Chromex.DevtoolsProtocol.Input do
           x :: integer() | float(),
           y :: integer() | float(),
           modifiers: integer(),
-          timestamp: time_since_epoch(),
-          button: mouse_button(),
           buttons: integer(),
           click_count: integer(),
           delta_x: integer() | float(),
@@ -88,19 +94,7 @@ defmodule Chromex.DevtoolsProtocol.Input do
     async = Keyword.get(opts, :async, false)
 
     params =
-      reduce_opts(
-        [
-          :modifiers,
-          :timestamp,
-          :button,
-          :buttons,
-          :click_count,
-          :delta_x,
-          :delta_y,
-          :pointer_type
-        ],
-        opts
-      )
+      reduce_opts([:modifiers, :buttons, :click_count, :delta_x, :delta_y, :pointer_type], opts)
 
     msg
     |> Map.put("params", params)
@@ -110,9 +104,8 @@ defmodule Chromex.DevtoolsProtocol.Input do
   @doc """
     Dispatches a touch event to the page.
   """
-  @spec dispatch_touch_event(type :: String.t(), touchPoints :: String.t(),
+  @spec dispatch_touch_event(type :: String.t(), touchPoints :: [touch_point()],
           modifiers: integer(),
-          timestamp: time_since_epoch(),
           async: boolean()
         ) :: %{}
   def dispatch_touch_event(type, touch_points, opts \\ []) do
@@ -123,7 +116,7 @@ defmodule Chromex.DevtoolsProtocol.Input do
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:modifiers, :timestamp], opts)
+    params = reduce_opts([:modifiers], opts)
 
     msg
     |> Map.put("params", params)

@@ -4,7 +4,7 @@ defmodule Chromex.DevtoolsProtocol.Performance do
   """
 
   # Run-time execution metric.
-  @type metric :: String.t()
+  @type metric :: %{required(:name) => String.t(), required(:value) => integer() | float()}
 
   @doc """
     Disable collecting and reporting metrics.

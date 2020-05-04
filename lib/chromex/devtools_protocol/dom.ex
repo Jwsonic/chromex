@@ -3,55 +3,104 @@ defmodule Chromex.DevtoolsProtocol.Dom do
     This domain exposes DOM read/write operations. Each DOM Node is represented with  its mirror object that has an `id`. This `id` can be used to get additional information  on the Node, resolve it into the JavaScript object wrapper, etc. It is important  that client receives DOM events only for the nodes that are known to the client.  Backend keeps track of the nodes that were sent to the client and never sends the  same node twice. It is client's responsibility to collect information about the nodes  that were sent to the client.<p>Note that `iframe` owner elements will return corresponding  document elements as their child nodes.</p>
   """
 
-  # Backend node with a friendly name.
-  @type backend_node :: String.t()
+  # Unique DOM node identifier.
+  @type node_id :: integer()
 
   # Unique DOM node identifier used to reference a node that may not have been pushed to thefront-end.
   @type backend_node_id :: integer()
 
-  # Box model.
-  @type box_model :: String.t()
-
-  # DOM interaction is implemented in terms of mirror objects that represent the actual DOM nodes.DOMNode is a base node mirror type.
-  @type node_ :: String.t()
-
-  # Unique DOM node identifier.
-  @type node_id :: integer()
+  # Backend node with a friendly name.
+  @type backend_node :: %{
+          required(:nodeType) => integer(),
+          required(:nodeName) => String.t(),
+          required(:backendNodeId) => backend_node_id()
+        }
 
   # Pseudo element type.
   @type pseudo_type :: String.t()
 
-  # An array of quad vertices, x immediately followed by y for each point, points clock-wise.
-  @type quad :: String.t()
-
-  # A structure holding an RGBA color.
-  @type rgba :: String.t()
-
-  # Rectangle.
-  @type rect :: String.t()
-
   # Shadow root type.
   @type shadow_root_type :: String.t()
 
+  # DOM interaction is implemented in terms of mirror objects that represent the actual DOM nodes.DOMNode is a base node mirror type.
+  @type node_ :: %{
+          required(:nodeId) => node_id(),
+          optional(:parentId) => node_id(),
+          required(:backendNodeId) => backend_node_id(),
+          required(:nodeType) => integer(),
+          required(:nodeName) => String.t(),
+          required(:localName) => String.t(),
+          required(:nodeValue) => String.t(),
+          optional(:childNodeCount) => integer(),
+          optional(:children) => [node()],
+          optional(:attributes) => [String.t()],
+          optional(:documentURL) => String.t(),
+          optional(:baseURL) => String.t(),
+          optional(:publicId) => String.t(),
+          optional(:systemId) => String.t(),
+          optional(:internalSubset) => String.t(),
+          optional(:xmlVersion) => String.t(),
+          optional(:name) => String.t(),
+          optional(:value) => String.t(),
+          optional(:pseudoType) => pseudo_type(),
+          optional(:shadowRootType) => shadow_root_type(),
+          optional(:frameId) => Page.frame_id(),
+          optional(:contentDocument) => node(),
+          optional(:shadowRoots) => [node()],
+          optional(:templateContent) => node(),
+          optional(:pseudoElements) => [node()],
+          optional(:importedDocument) => node(),
+          optional(:distributedNodes) => [backend_node()],
+          optional(:isSVG) => boolean()
+        }
+
+  # A structure holding an RGBA color.
+  @type rgba :: %{
+          required(:r) => integer(),
+          required(:g) => integer(),
+          required(:b) => integer(),
+          optional(:a) => integer() | float()
+        }
+
+  # An array of quad vertices, x immediately followed by y for each point, points clock-wise.
+  @type quad :: [integer() | float()]
+
+  # Box model.
+  @type box_model :: %{
+          required(:content) => quad(),
+          required(:padding) => quad(),
+          required(:border) => quad(),
+          required(:margin) => quad(),
+          required(:width) => integer(),
+          required(:height) => integer(),
+          optional(:shapeOutside) => shape_outside_info()
+        }
+
   # CSS Shape Outside details.
-  @type shape_outside_info :: String.t()
+  @type shape_outside_info :: %{
+          required(:bounds) => quad(),
+          required(:shape) => [any()],
+          required(:marginShape) => [any()]
+        }
+
+  # Rectangle.
+  @type rect :: %{
+          required(:x) => integer() | float(),
+          required(:y) => integer() | float(),
+          required(:width) => integer() | float(),
+          required(:height) => integer() | float()
+        }
 
   @doc """
     Describes node given its id, does not require domain to be enabled. Does not start tracking anyobjects, can be used for automation.
   """
-  @spec describe_node(
-          node_id: node_id(),
-          backend_node_id: backend_node_id(),
-          depth: integer(),
-          pierce: boolean(),
-          async: boolean()
-        ) :: %{}
+  @spec describe_node(depth: integer(), pierce: boolean(), async: boolean()) :: %{}
   def describe_node(opts \\ []) do
     msg = %{}
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:node_id, :backend_node_id, :depth, :pierce], opts)
+    params = reduce_opts([:depth, :pierce], opts)
 
     msg
     |> Map.put("params", params)
@@ -85,17 +134,13 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @doc """
     Focuses the given element.
   """
-  @spec focus(node_id: node_id(), backend_node_id: backend_node_id(), async: boolean()) :: %{}
+  @spec focus(async: boolean()) :: %{}
   def focus(opts \\ []) do
     msg = %{}
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:node_id, :backend_node_id], opts)
-
-    msg
-    |> Map.put("params", params)
-    |> Chromex.Browser.send(async: async)
+    Chromex.Browser.send(msg, async: async)
   end
 
   @doc """
@@ -115,18 +160,13 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @doc """
     Returns boxes for the given node.
   """
-  @spec get_box_model(node_id: node_id(), backend_node_id: backend_node_id(), async: boolean()) ::
-          %{}
+  @spec get_box_model(async: boolean()) :: %{}
   def get_box_model(opts \\ []) do
     msg = %{}
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:node_id, :backend_node_id], opts)
-
-    msg
-    |> Map.put("params", params)
-    |> Chromex.Browser.send(async: async)
+    Chromex.Browser.send(msg, async: async)
   end
 
   @doc """
@@ -187,18 +227,13 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @doc """
     Returns node's HTML markup.
   """
-  @spec get_outer_html(node_id: node_id(), backend_node_id: backend_node_id(), async: boolean()) ::
-          %{}
+  @spec get_outer_html(async: boolean()) :: %{}
   def get_outer_html(opts \\ []) do
     msg = %{}
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:node_id, :backend_node_id], opts)
-
-    msg
-    |> Map.put("params", params)
-    |> Chromex.Browser.send(async: async)
+    Chromex.Browser.send(msg, async: async)
   end
 
   @doc """
@@ -240,10 +275,7 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @doc """
     Moves node into the new container, places it before the given anchor.
   """
-  @spec move_to(nodeId :: node_id(), targetNodeId :: node_id(),
-          insert_before_node_id: node_id(),
-          async: boolean()
-        ) :: %{}
+  @spec move_to(nodeId :: node_id(), targetNodeId :: node_id(), async: boolean()) :: %{}
   def move_to(node_id, target_node_id, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
@@ -252,11 +284,7 @@ defmodule Chromex.DevtoolsProtocol.Dom do
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:insert_before_node_id], opts)
-
-    msg
-    |> Map.put("params", params)
-    |> Chromex.Browser.send(async: async)
+    Chromex.Browser.send(msg, async: async)
   end
 
   @doc """
@@ -357,13 +385,13 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @doc """
     Resolves the JavaScript node object for a given NodeId or BackendNodeId.
   """
-  @spec resolve_node(node_id: node_id(), object_group: String.t(), async: boolean()) :: %{}
+  @spec resolve_node(object_group: String.t(), async: boolean()) :: %{}
   def resolve_node(opts \\ []) do
     msg = %{}
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:node_id, :object_group], opts)
+    params = reduce_opts([:object_group], opts)
 
     msg
     |> Map.put("params", params)
@@ -413,11 +441,7 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @doc """
     Sets files for the given file input element.
   """
-  @spec set_file_input_files(files :: String.t(),
-          node_id: node_id(),
-          backend_node_id: backend_node_id(),
-          async: boolean()
-        ) :: %{}
+  @spec set_file_input_files(files :: [String.t()], async: boolean()) :: %{}
   def set_file_input_files(files, opts \\ []) do
     msg = %{
       "files" => files
@@ -425,11 +449,7 @@ defmodule Chromex.DevtoolsProtocol.Dom do
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:node_id, :backend_node_id], opts)
-
-    msg
-    |> Map.put("params", params)
-    |> Chromex.Browser.send(async: async)
+    Chromex.Browser.send(msg, async: async)
   end
 
   @doc """

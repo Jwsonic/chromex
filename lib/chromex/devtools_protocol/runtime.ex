@@ -3,47 +3,146 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
     Runtime domain exposes JavaScript runtime by means of remote evaluation and mirror  objects. Evaluation results are returned as mirror object that expose object type,  string representation and unique identifier that can be used for further object reference.  Original objects are maintained in memory unless they are either explicitly released  or are released along with the other objects in their object group.
   """
 
-  # Represents function call argument. Either remote object id 'objectId', primitive 'value',unserializable primitive value or neither of (for undefined) them should be specified.
-  @type call_argument :: String.t()
-
-  # Stack entry for runtime errors and assertions.
-  @type call_frame :: String.t()
-
-  # Detailed information about exception (or error) that was thrown during script compilation orexecution.
-  @type exception_details :: String.t()
-
-  # Description of an isolated world.
-  @type execution_context_description :: String.t()
-
-  # Id of an execution context.
-  @type execution_context_id :: integer()
-
-  # Object internal property descriptor. This property isn't normally visible in JavaScript code.
-  @type internal_property_descriptor :: String.t()
-
-  # Object property descriptor.
-  @type property_descriptor :: String.t()
-
-  # Mirror object referencing original JavaScript object.
-  @type remote_object :: String.t()
+  # Unique script identifier.
+  @type script_id :: String.t()
 
   # Unique object identifier.
   @type remote_object_id :: String.t()
 
-  # Unique script identifier.
-  @type script_id :: String.t()
+  # Primitive value which cannot be JSON-stringified. Includes values '-0', 'NaN', 'Infinity','-Infinity', and bigint literals.
+  @type unserializable_value :: String.t()
 
-  # Call frames for assertions or error messages.
-  @type stack_trace :: String.t()
+  # Mirror object referencing original JavaScript object.
+  @type remote_object :: %{
+          required(:type) => String.t(),
+          optional(:subtype) => String.t(),
+          optional(:className) => String.t(),
+          optional(:value) => any(),
+          optional(:unserializableValue) => unserializable_value(),
+          optional(:description) => String.t(),
+          optional(:objectId) => remote_object_id(),
+          optional(:preview) => object_preview(),
+          optional(:customPreview) => custom_preview()
+        }
 
-  # Number of milliseconds.
-  @type time_delta :: integer() | float()
+  @type custom_preview :: %{
+          required(:header) => String.t(),
+          optional(:bodyGetterId) => remote_object_id()
+        }
+
+  # Object containing abbreviated remote object value.
+  @type object_preview :: %{
+          required(:type) => String.t(),
+          optional(:subtype) => String.t(),
+          optional(:description) => String.t(),
+          required(:overflow) => boolean(),
+          required(:properties) => [property_preview()],
+          optional(:entries) => [entry_preview()]
+        }
+
+  @type property_preview :: %{
+          required(:name) => String.t(),
+          required(:type) => String.t(),
+          optional(:value) => String.t(),
+          optional(:valuePreview) => object_preview(),
+          optional(:subtype) => String.t()
+        }
+
+  @type entry_preview :: %{
+          optional(:key) => object_preview(),
+          required(:value) => object_preview()
+        }
+
+  # Object property descriptor.
+  @type property_descriptor :: %{
+          required(:name) => String.t(),
+          optional(:value) => remote_object(),
+          optional(:writable) => boolean(),
+          optional(:get) => remote_object(),
+          optional(:set) => remote_object(),
+          required(:configurable) => boolean(),
+          required(:enumerable) => boolean(),
+          optional(:wasThrown) => boolean(),
+          optional(:isOwn) => boolean(),
+          optional(:symbol) => remote_object()
+        }
+
+  # Object internal property descriptor. This property isn't normally visible in JavaScript code.
+  @type internal_property_descriptor :: %{
+          required(:name) => String.t(),
+          optional(:value) => remote_object()
+        }
+
+  # Object private field descriptor.
+  @type private_property_descriptor :: %{
+          required(:name) => String.t(),
+          optional(:value) => remote_object(),
+          optional(:get) => remote_object(),
+          optional(:set) => remote_object()
+        }
+
+  # Represents function call argument. Either remote object id 'objectId', primitive 'value',unserializable primitive value or neither of (for undefined) them should be specified.
+  @type call_argument :: %{
+          optional(:value) => any(),
+          optional(:unserializableValue) => unserializable_value(),
+          optional(:objectId) => remote_object_id()
+        }
+
+  # Id of an execution context.
+  @type execution_context_id :: integer()
+
+  # Description of an isolated world.
+  @type execution_context_description :: %{
+          required(:id) => execution_context_id(),
+          required(:origin) => String.t(),
+          required(:name) => String.t(),
+          optional(:auxData) => map()
+        }
+
+  # Detailed information about exception (or error) that was thrown during script compilation orexecution.
+  @type exception_details :: %{
+          required(:exceptionId) => integer(),
+          required(:text) => String.t(),
+          required(:lineNumber) => integer(),
+          required(:columnNumber) => integer(),
+          optional(:scriptId) => script_id(),
+          optional(:url) => String.t(),
+          optional(:stackTrace) => stack_trace(),
+          optional(:exception) => remote_object(),
+          optional(:executionContextId) => execution_context_id()
+        }
 
   # Number of milliseconds since epoch.
   @type timestamp :: integer() | float()
 
-  # Primitive value which cannot be JSON-stringified. Includes values '-0', 'NaN', 'Infinity','-Infinity', and bigint literals.
-  @type unserializable_value :: String.t()
+  # Number of milliseconds.
+  @type time_delta :: integer() | float()
+
+  # Stack entry for runtime errors and assertions.
+  @type call_frame :: %{
+          required(:functionName) => String.t(),
+          required(:scriptId) => script_id(),
+          required(:url) => String.t(),
+          required(:lineNumber) => integer(),
+          required(:columnNumber) => integer()
+        }
+
+  # Call frames for assertions or error messages.
+  @type stack_trace :: %{
+          optional(:description) => String.t(),
+          required(:callFrames) => [call_frame()],
+          optional(:parent) => stack_trace(),
+          optional(:parentId) => stack_trace_id()
+        }
+
+  # Unique identifier of current debugger.
+  @type unique_debugger_id :: String.t()
+
+  # If 'debuggerId' is set stack trace comes from another debugger and can be resolved there. Thisallows to track cross-debugger calls. See 'Runtime.StackTrace' and 'Debugger.paused' for usages.
+  @type stack_trace_id :: %{
+          required(:id) => String.t(),
+          optional(:debuggerId) => unique_debugger_id()
+        }
 
   @doc """
     Add handler to promise with given promise object id.
@@ -71,14 +170,12 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
     Calls function with given declaration on the given object. Object group of the result isinherited from the target object.
   """
   @spec call_function_on(functionDeclaration :: String.t(),
-          object_id: remote_object_id(),
-          arguments: String.t(),
+          arguments: [call_argument()],
           silent: boolean(),
           return_by_value: boolean(),
           generate_preview: boolean(),
           user_gesture: boolean(),
           await_promise: boolean(),
-          execution_context_id: execution_context_id(),
           object_group: String.t(),
           async: boolean()
         ) :: %{}
@@ -92,14 +189,12 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
     params =
       reduce_opts(
         [
-          :object_id,
           :arguments,
           :silent,
           :return_by_value,
           :generate_preview,
           :user_gesture,
           :await_promise,
-          :execution_context_id,
           :object_group
         ],
         opts
@@ -117,7 +212,6 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
           expression :: String.t(),
           sourceURL :: String.t(),
           persistScript :: boolean(),
-          execution_context_id: execution_context_id(),
           async: boolean()
         ) :: %{}
   def compile_script(expression, source_url, persist_script, opts \\ []) do
@@ -129,11 +223,7 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:execution_context_id], opts)
-
-    msg
-    |> Map.put("params", params)
-    |> Chromex.Browser.send(async: async)
+    Chromex.Browser.send(msg, async: async)
   end
 
   @doc """
@@ -179,13 +269,11 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
           object_group: String.t(),
           include_command_line_api: boolean(),
           silent: boolean(),
-          context_id: execution_context_id(),
           return_by_value: boolean(),
           generate_preview: boolean(),
           user_gesture: boolean(),
           await_promise: boolean(),
           throw_on_side_effect: boolean(),
-          timeout: time_delta(),
           disable_breaks: boolean(),
           repl_mode: boolean(),
           async: boolean()
@@ -203,13 +291,11 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
           :object_group,
           :include_command_line_api,
           :silent,
-          :context_id,
           :return_by_value,
           :generate_preview,
           :user_gesture,
           :await_promise,
           :throw_on_side_effect,
-          :timeout,
           :disable_breaks,
           :repl_mode
         ],
@@ -247,18 +333,13 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
   @doc """
     Returns all let, const and class variables from global scope.
   """
-  @spec global_lexical_scope_names(execution_context_id: execution_context_id(), async: boolean()) ::
-          %{}
+  @spec global_lexical_scope_names(async: boolean()) :: %{}
   def global_lexical_scope_names(opts \\ []) do
     msg = %{}
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:execution_context_id], opts)
-
-    msg
-    |> Map.put("params", params)
-    |> Chromex.Browser.send(async: async)
+    Chromex.Browser.send(msg, async: async)
   end
 
   @doc """
@@ -326,7 +407,6 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
     Runs script with given id in a given context.
   """
   @spec run_script(scriptId :: script_id(),
-          execution_context_id: execution_context_id(),
           object_group: String.t(),
           silent: boolean(),
           include_command_line_api: boolean(),
@@ -345,7 +425,6 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
     params =
       reduce_opts(
         [
-          :execution_context_id,
           :object_group,
           :silent,
           :include_command_line_api,

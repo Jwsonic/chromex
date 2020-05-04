@@ -3,23 +3,67 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
     
   """
 
-  # Coverage data for a source range.
-  @type coverage_range :: String.t()
-
-  # Coverage data for a JavaScript function.
-  @type function_coverage :: String.t()
-
-  # Specifies a number of samples attributed to a certain source position.
-  @type position_tick_info :: String.t()
+  # Profile node. Holds callsite information, execution statistics and child nodes.
+  @type profile_node :: %{
+          required(:id) => integer(),
+          required(:callFrame) => Runtime.call_frame(),
+          optional(:hitCount) => integer(),
+          optional(:children) => [integer()],
+          optional(:deoptReason) => String.t(),
+          optional(:positionTicks) => [position_tick_info()]
+        }
 
   # Profile.
-  @type profile :: String.t()
+  @type profile :: %{
+          required(:nodes) => [profile_node()],
+          required(:startTime) => integer() | float(),
+          required(:endTime) => integer() | float(),
+          optional(:samples) => [integer()],
+          optional(:timeDeltas) => [integer()]
+        }
 
-  # Profile node. Holds callsite information, execution statistics and child nodes.
-  @type profile_node :: String.t()
+  # Specifies a number of samples attributed to a certain source position.
+  @type position_tick_info :: %{required(:line) => integer(), required(:ticks) => integer()}
+
+  # Coverage data for a source range.
+  @type coverage_range :: %{
+          required(:startOffset) => integer(),
+          required(:endOffset) => integer(),
+          required(:count) => integer()
+        }
+
+  # Coverage data for a JavaScript function.
+  @type function_coverage :: %{
+          required(:functionName) => String.t(),
+          required(:ranges) => [coverage_range()],
+          required(:isBlockCoverage) => boolean()
+        }
 
   # Coverage data for a JavaScript script.
-  @type script_coverage :: String.t()
+  @type script_coverage :: %{
+          required(:scriptId) => Runtime.script_id(),
+          required(:url) => String.t(),
+          required(:functions) => [function_coverage()]
+        }
+
+  # Describes a type collected during runtime.
+  @type type_object :: %{required(:name) => String.t()}
+
+  # Source offset and types for a parameter or return value.
+  @type type_profile_entry :: %{
+          required(:offset) => integer(),
+          required(:types) => [type_object()]
+        }
+
+  # Type profile data collected during runtime for a JavaScript script.
+  @type script_type_profile :: %{
+          required(:scriptId) => Runtime.script_id(),
+          required(:url) => String.t(),
+          required(:entries) => [type_profile_entry()]
+        }
+
+  # Collected counter information.
+  @type counter_info :: %{required(:name) => String.t(), required(:value) => integer()}
 
   @doc """
     

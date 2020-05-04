@@ -7,7 +7,18 @@ defmodule Chromex.DevtoolsProtocol.Domdebugger do
   @type dom_breakpoint_type :: String.t()
 
   # Object event listener.
-  @type event_listener :: String.t()
+  @type event_listener :: %{
+          required(:type) => String.t(),
+          required(:useCapture) => boolean(),
+          required(:passive) => boolean(),
+          required(:once) => boolean(),
+          required(:scriptId) => Runtime.script_id(),
+          required(:lineNumber) => integer(),
+          required(:columnNumber) => integer(),
+          optional(:handler) => Runtime.remote_object(),
+          optional(:originalHandler) => Runtime.remote_object(),
+          optional(:backendNodeId) => DOM.backend_node_id()
+        }
 
   @doc """
     Returns event listeners of the given object.

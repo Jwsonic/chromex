@@ -3,28 +3,61 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
     Debugger domain exposes JavaScript debugging capabilities. It allows setting and  removing breakpoints, stepping through execution, exploring stack traces, etc.
   """
 
-  @type break_location :: String.t()
-
   # Breakpoint identifier.
   @type breakpoint_id :: String.t()
-
-  # JavaScript call frame. Array of call frames form the call stack.
-  @type call_frame :: String.t()
 
   # Call frame identifier.
   @type call_frame_id :: String.t()
 
   # Location in the source code.
-  @type location :: String.t()
+  @type location :: %{
+          required(:scriptId) => Runtime.script_id(),
+          required(:lineNumber) => integer(),
+          optional(:columnNumber) => integer()
+        }
+
+  # Location in the source code.
+  @type script_position :: %{
+          required(:lineNumber) => integer(),
+          required(:columnNumber) => integer()
+        }
+
+  # JavaScript call frame. Array of call frames form the call stack.
+  @type call_frame :: %{
+          required(:callFrameId) => call_frame_id(),
+          required(:functionName) => String.t(),
+          optional(:functionLocation) => location(),
+          required(:location) => location(),
+          required(:url) => String.t(),
+          required(:scopeChain) => [scope()],
+          required(:this) => Runtime.remote_object(),
+          optional(:returnValue) => Runtime.remote_object()
+        }
 
   # Scope description.
-  @type scope :: String.t()
+  @type scope :: %{
+          required(:type) => String.t(),
+          required(:object) => Runtime.remote_object(),
+          optional(:name) => String.t(),
+          optional(:startLocation) => location(),
+          optional(:endLocation) => location()
+        }
+
+  # Search match for resource.
+  @type search_match :: %{
+          required(:lineNumber) => integer() | float(),
+          required(:lineContent) => String.t()
+        }
+
+  @type break_location :: %{
+          required(:scriptId) => Runtime.script_id(),
+          required(:lineNumber) => integer(),
+          optional(:columnNumber) => integer(),
+          optional(:type) => String.t()
+        }
 
   # Enum of possible script languages.
   @type script_language :: String.t()
-
-  # Search match for resource.
-  @type search_match :: String.t()
 
   @doc """
     Continues execution until specific location is reached.
@@ -117,7 +150,6 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
     Returns possible locations for breakpoint. scriptId in start and end range locations should bethe same.
   """
   @spec get_possible_breakpoints(start :: location(),
-          end: location(),
           restrict_to_function: boolean(),
           async: boolean()
         ) :: %{}
@@ -128,7 +160,7 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:end_, :restrict_to_function], opts)
+    params = reduce_opts([:restrict_to_function], opts)
 
     msg
     |> Map.put("params", params)

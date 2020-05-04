@@ -4,10 +4,24 @@ defmodule Chromex.DevtoolsProtocol.Log do
   """
 
   # Log entry.
-  @type log_entry :: String.t()
+  @type log_entry :: %{
+          required(:source) => String.t(),
+          required(:level) => String.t(),
+          required(:text) => String.t(),
+          required(:timestamp) => Runtime.timestamp(),
+          optional(:url) => String.t(),
+          optional(:lineNumber) => integer(),
+          optional(:stackTrace) => Runtime.stack_trace(),
+          optional(:networkRequestId) => Network.request_id(),
+          optional(:workerId) => String.t(),
+          optional(:args) => [Runtime.remote_object()]
+        }
 
   # Violation configuration setting.
-  @type violation_setting :: String.t()
+  @type violation_setting :: %{
+          required(:name) => String.t(),
+          required(:threshold) => integer() | float()
+        }
 
   @doc """
     Clears the log.
@@ -48,7 +62,7 @@ defmodule Chromex.DevtoolsProtocol.Log do
   @doc """
     start violation reporting.
   """
-  @spec start_violations_report(config :: String.t(), async: boolean()) :: %{}
+  @spec start_violations_report(config :: [violation_setting()], async: boolean()) :: %{}
   def start_violations_report(config, opts \\ []) do
     msg = %{
       "config" => config

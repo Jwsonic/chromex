@@ -3,12 +3,22 @@ defmodule Chromex.DevtoolsProtocol.Target do
     Supports additional targets discovery and allows to attach to them.
   """
 
+  @type target_id :: String.t()
+
   # Unique identifier of attached debugging session.
   @type session_id :: String.t()
 
-  @type target_id :: String.t()
+  @type target_info :: %{
+          required(:targetId) => target_id(),
+          required(:type) => String.t(),
+          required(:title) => String.t(),
+          required(:url) => String.t(),
+          required(:attached) => boolean(),
+          optional(:openerId) => target_id(),
+          optional(:browserContextId) => Browser.browser_context_id()
+        }
 
-  @type target_info :: String.t()
+  @type remote_location :: %{required(:host) => String.t(), required(:port) => integer()}
 
   @doc """
     Activates (focuses) the target.
@@ -85,18 +95,13 @@ defmodule Chromex.DevtoolsProtocol.Target do
   @doc """
     Detaches session with given id.
   """
-  @spec detach_from_target(session_id: session_id(), target_id: target_id(), async: boolean()) ::
-          %{}
+  @spec detach_from_target(async: boolean()) :: %{}
   def detach_from_target(opts \\ []) do
     msg = %{}
 
     async = Keyword.get(opts, :async, false)
 
-    params = reduce_opts([:session_id, :target_id], opts)
-
-    msg
-    |> Map.put("params", params)
-    |> Chromex.Browser.send(async: async)
+    Chromex.Browser.send(msg, async: async)
   end
 
   @doc """
