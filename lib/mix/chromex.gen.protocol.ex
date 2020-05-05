@@ -42,34 +42,11 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
     module_doc =
       domain
       |> Map.get("description", "")
-      |> String.trim()
-      |> String.replace("\n", " ")
-      |> String.split(" ")
-      |> Enum.chunk_while(
-        "",
-        fn word, acc ->
-          acc = acc <> " " <> word
-
-          case String.length(acc) <= 80 do
-            true -> {:cont, acc}
-            false -> {:cont, acc, ""}
-          end
-        end,
-        fn acc -> {:cont, acc, ""} end
-      )
+      |> format_lines()
 
     allowed_types = MapSet.new(types)
 
-    include_reduce_opts =
-      commands
-      |> Enum.flat_map(fn {_name, command} -> Map.get(command, "parameters", []) end)
-      |> Enum.filter(&Map.get(&1, "optional", false))
-      |> Enum.filter(fn
-        %{"$ref" => ref} -> MapSet.member?(allowed_types, ref)
-        _ -> true
-      end)
-      |> length()
-      |> Kernel.>(0)
+    include_reduce_opts = reduce_opts_needed?(domain)
 
     functions =
       commands
@@ -256,6 +233,40 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
   defp to_spec(%{"type" => type}) do
     Map.get(@specs, type, "broken_type")
+  end
+
+  # Split a string into lines of max_line_len length
+  defp format_lines(string, max_line_len \\ 80) do
+    string
+    |> String.trim()
+    |> String.replace("\n", " ")
+    |> String.split(" ")
+    |> Enum.chunk_while(
+      "",
+      fn word, acc ->
+        acc = acc <> " " <> word
+
+        case String.length(acc) <= max_line_len do
+          true -> {:cont, acc}
+          false -> {:cont, acc, ""}
+        end
+      end,
+      fn acc -> {:cont, acc, ""} end
+    )
+  end
+
+  defp reduce_opts_needed?(%{"commands" => commands, "types" => types}) do
+    allowed_types = MapSet.new(types)
+
+    commands
+    |> Enum.flat_map(fn {_name, command} -> Map.get(command, "parameters", []) end)
+    |> Enum.filter(&Map.get(&1, "optional", false))
+    |> Enum.filter(fn
+      %{"$ref" => ref} -> MapSet.member?(allowed_types, ref)
+      _ -> true
+    end)
+    |> length()
+    |> Kernel.>(0)
   end
 
   @module_template "module_template.eex"
