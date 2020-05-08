@@ -39,22 +39,10 @@ defmodule Chromex.Browser do
 
   @impl true
   def handle_call({:send, msg, _opts}, _from, %{socket: socket} = state) when is_map(msg) do
-    msg = Map.update(msg, "id", 1, fn id -> id end)
-    id = msg["id"]
-
-    Logger.info("Sending message: #{inspect(msg)}")
-
-    msg
-    |> Jason.encode!()
-    |> (&Socket.send(socket, &1)).()
-
     reply =
-      receive do
-        {:ws_message, %{"id" => ^id} = message} ->
-          {:ok, message}
-      after
-        1_000 -> {:error, "Timed out"}
-      end
+      msg
+      |> Map.update("id", 1, fn id -> id end)
+      |> do_send(socket)
 
     {:reply, reply, state}
   end
@@ -81,6 +69,8 @@ defmodule Chromex.Browser do
     Logger.info("Connecting to chrome on #{ws_address}.")
 
     {:ok, socket} = Socket.connect(ws_address)
+
+    verify_devtools_version!(socket)
 
     {:noreply, Map.put(state, :socket, socket)}
   end
@@ -155,5 +145,39 @@ defmodule Chromex.Browser do
       ])
 
     Map.put(config, :port, port)
+  end
+
+  @current_version "1.3"
+  @version_message %{"id" => 1, "method" => "Browser.getVersion"}
+  @close_message %{"id" => 1, "method" => "Browser.close"}
+
+  defp verify_devtools_version!(socket) do
+    case do_send(@version_message, socket) do
+      {:ok, %{"result" => %{"protocolVersion" => @current_version}}} ->
+        Logger.info("Devtools version match.")
+        :ok
+
+      _ ->
+        do_send(@close_message, socket)
+
+        raise(
+          "Your chrome instance does not support devtools protocol version #{@current_version}."
+        )
+    end
+  end
+
+  defp do_send(%{"id" => id} = msg, socket) do
+    Logger.info("Sending message: #{inspect(msg)}")
+
+    msg
+    |> Jason.encode!()
+    |> (&Socket.send(socket, &1)).()
+
+    receive do
+      {:ws_message, %{"id" => ^id} = message} ->
+        {:ok, message}
+    after
+      1_000 -> {:error, "Timed out"}
+    end
   end
 end

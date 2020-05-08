@@ -36,8 +36,8 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
   @function_template "function_template.eex"
 
-  defp build_module(%{"domain" => name, "commands" => commands, "types" => types} = domain) do
-    module_name = String.capitalize(name)
+  defp build_module(%{"domain" => domain_name, "commands" => commands, "types" => types} = domain) do
+    module_name = String.capitalize(domain_name)
 
     module_doc =
       domain
@@ -58,8 +58,6 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
           |> String.replace("`", "'")
 
         parameters = Map.get(command, "parameters", [])
-
-        parameters |> Enum.map(&Map.get(&1, "name"))
 
         required_params = parameters |> Enum.reject(&Map.get(&1, "optional", false))
 
@@ -108,6 +106,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
           |> Enum.map(&Map.get(&1, "name"))
           |> Enum.zip(signature_params)
           |> Enum.map(fn {key, val} -> "\"#{key}\" => #{val}" end)
+          |> Kernel.++(["\"method\" => \"#{domain_name}.#{name}\""])
           |> Enum.join(",\n")
 
         signature_params = join_params(signature_params)
