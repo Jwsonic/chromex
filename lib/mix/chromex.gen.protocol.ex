@@ -34,9 +34,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
     :ok
   end
 
-  @function_template "function_template.eex"
-
-  defp build_module(%{"domain" => domain_name, "commands" => commands, "types" => types} = domain) do
+  defp build_module(%{"domain" => domain_name} = domain) do
     module_name = String.capitalize(domain_name)
 
     module_doc =
@@ -44,117 +42,12 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
       |> Map.get("description", "")
       |> format_lines()
 
-    allowed_types = MapSet.new(types)
-
-    include_reduce_opts = reduce_opts_needed?(domain)
-
-    functions =
-      commands
-      |> Enum.map(fn {name, command} ->
-        doc =
-          command
-          |> Map.get("description", "")
-          |> String.replace("\n", "")
-          |> String.replace("`", "'")
-
-        parameters = Map.get(command, "parameters", [])
-
-        required_params = parameters |> Enum.reject(&Map.get(&1, "optional", false))
-
-        optional_params =
-          parameters
-          |> Enum.filter(&Map.get(&1, "optional", false))
-          |> Enum.filter(fn
-            %{"$ref" => ref} -> MapSet.member?(allowed_types, ref)
-            _ -> true
-          end)
-
-        param_keys =
-          optional_params
-          |> Enum.map(&Map.get(&1, "name"))
-          |> Enum.map(&Map.get(@reserved_names, &1, &1))
-          |> Enum.map(&Macro.underscore/1)
-          |> Enum.map(&String.to_atom/1)
-          |> Enum.map(&inspect/1)
-          |> Enum.join(", ")
-
-        opt_spec_params =
-          optional_params
-          |> Kernel.++([%{"name" => "async", "type" => "boolean"}])
-          |> Enum.map(fn %{"name" => name} = msg ->
-            Macro.underscore(name) <> ": " <> to_spec(msg)
-          end)
-
-        spec_params =
-          required_params
-          |> Enum.map(fn %{"name" => name} = param ->
-            spec = to_spec(param)
-
-            "#{name} :: #{spec}"
-          end)
-          |> Enum.concat(opt_spec_params)
-          |> Enum.join(", ")
-
-        signature_params =
-          required_params
-          |> Enum.map(&Map.get(&1, "name"))
-          |> Enum.map(&Map.get(@reserved_names, &1, &1))
-          |> Enum.map(&Macro.underscore/1)
-
-        msg_contents =
-          required_params
-          |> Enum.map(&Map.get(&1, "name"))
-          |> Enum.zip(signature_params)
-          |> Enum.map(fn {key, val} -> "\"#{key}\" => #{val}" end)
-          |> Kernel.++(["\"method\" => \"#{domain_name}.#{name}\""])
-          |> Enum.join(",\n")
-
-        signature_params = join_params(signature_params)
-
-        bindings = [
-          doc: doc,
-          msg_contents: msg_contents,
-          name: Macro.underscore(name),
-          param_keys: param_keys,
-          signature_params: signature_params,
-          spec_params: spec_params,
-          spec_result: "%{}"
-        ]
-
-        @function_template
-        |> path_priv_file()
-        |> EEx.eval_file(bindings)
-      end)
-
-    types =
-      types
-      |> Enum.map(fn type ->
-        name =
-          type |> Map.get("id") |> Macro.underscore() |> (&Map.get(@reserved_names, &1, &1)).()
-
-        spec = to_spec(type)
-
-        doc =
-          type
-          |> Map.get("description", "")
-          |> String.replace("\n", "")
-          |> String.replace("`", "'")
-
-        prepend =
-          case doc do
-            "" -> ""
-            _ -> "# "
-          end
-
-        "#{prepend}#{doc}\n@type #{name} :: #{spec}"
-      end)
-
     bindings = [
-      functions: functions,
-      include_reduce_opts: include_reduce_opts,
+      functions: build_functions(domain),
+      include_reduce_opts: reduce_opts_needed?(domain),
       module_doc: module_doc,
       module_name: module_name,
-      types: types
+      types: build_types(domain)
     ]
 
     write_file(module_name, bindings)
@@ -266,6 +159,112 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
     end)
     |> length()
     |> Kernel.>(0)
+  end
+
+  @function_template "function_template.eex"
+
+  defp build_functions(%{"commands" => commands, "domain" => domain_name, "types" => types}) do
+    allowed_types = MapSet.new(types)
+
+    commands
+    |> Enum.map(fn {name, command} ->
+      doc =
+        command
+        |> Map.get("description", "")
+        |> String.replace("\n", "")
+        |> String.replace("`", "'")
+
+      parameters = Map.get(command, "parameters", [])
+
+      required_params = parameters |> Enum.reject(&Map.get(&1, "optional", false))
+
+      optional_params =
+        parameters
+        |> Enum.filter(&Map.get(&1, "optional", false))
+        |> Enum.filter(fn
+          %{"$ref" => ref} -> MapSet.member?(allowed_types, ref)
+          _ -> true
+        end)
+
+      param_keys =
+        optional_params
+        |> Enum.map(&Map.get(&1, "name"))
+        |> Enum.map(&Map.get(@reserved_names, &1, &1))
+        |> Enum.map(&Macro.underscore/1)
+        |> Enum.map(&String.to_atom/1)
+        |> Enum.map(&inspect/1)
+        |> Enum.join(", ")
+
+      opt_spec_params =
+        optional_params
+        |> Kernel.++([%{"name" => "async", "type" => "boolean"}])
+        |> Enum.map(fn %{"name" => name} = msg ->
+          Macro.underscore(name) <> ": " <> to_spec(msg)
+        end)
+
+      spec_params =
+        required_params
+        |> Enum.map(fn %{"name" => name} = param ->
+          spec = to_spec(param)
+
+          "#{name} :: #{spec}"
+        end)
+        |> Enum.concat(opt_spec_params)
+        |> Enum.join(", ")
+
+      signature_params =
+        required_params
+        |> Enum.map(&Map.get(&1, "name"))
+        |> Enum.map(&Map.get(@reserved_names, &1, &1))
+        |> Enum.map(&Macro.underscore/1)
+
+      msg_contents =
+        required_params
+        |> Enum.map(&Map.get(&1, "name"))
+        |> Enum.zip(signature_params)
+        |> Enum.map(fn {key, val} -> "\"#{key}\" => #{val}" end)
+        |> Kernel.++(["\"method\" => \"#{domain_name}.#{name}\""])
+        |> Enum.join(",\n")
+
+      signature_params = join_params(signature_params)
+
+      bindings = [
+        doc: doc,
+        msg_contents: msg_contents,
+        name: Macro.underscore(name),
+        param_keys: param_keys,
+        signature_params: signature_params,
+        spec_params: spec_params,
+        spec_result: "%{}"
+      ]
+
+      @function_template
+      |> path_priv_file()
+      |> EEx.eval_file(bindings)
+    end)
+  end
+
+  defp build_types(%{"types" => types}) do
+    types
+    |> Enum.map(fn type ->
+      name = type |> Map.get("id") |> Macro.underscore() |> (&Map.get(@reserved_names, &1, &1)).()
+
+      spec = to_spec(type)
+
+      doc =
+        type
+        |> Map.get("description", "")
+        |> String.replace("\n", "")
+        |> String.replace("`", "'")
+
+      prepend =
+        case doc do
+          "" -> ""
+          _ -> "# "
+        end
+
+      "#{prepend}#{doc}\n@type #{name} :: #{spec}"
+    end)
   end
 
   @module_template "module_template.eex"
