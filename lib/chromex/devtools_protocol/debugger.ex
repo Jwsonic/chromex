@@ -68,7 +68,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
         ) :: %{}
   def continue_to_location(location, opts \\ []) do
     msg = %{
-      "location" => location
+      "location" => location,
+      "method" => "Debugger.continueToLocation"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -85,7 +86,9 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   """
   @spec disable(async: boolean()) :: %{}
   def disable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Debugger.disable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -97,7 +100,9 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   """
   @spec enable(max_scripts_cache_size: integer() | float(), async: boolean()) :: %{}
   def enable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Debugger.enable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -123,7 +128,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   def evaluate_on_call_frame(call_frame_id, expression, opts \\ []) do
     msg = %{
       "callFrameId" => call_frame_id,
-      "expression" => expression
+      "expression" => expression,
+      "method" => "Debugger.evaluateOnCallFrame"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -155,7 +161,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
         ) :: %{}
   def get_possible_breakpoints(start, opts \\ []) do
     msg = %{
-      "start" => start
+      "start" => start,
+      "method" => "Debugger.getPossibleBreakpoints"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -173,7 +180,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   @spec get_script_source(scriptId :: Runtime.script_id(), async: boolean()) :: %{}
   def get_script_source(script_id, opts \\ []) do
     msg = %{
-      "scriptId" => script_id
+      "scriptId" => script_id,
+      "method" => "Debugger.getScriptSource"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -186,7 +194,9 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   """
   @spec pause(async: boolean()) :: %{}
   def pause(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Debugger.pause"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -199,7 +209,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   @spec remove_breakpoint(breakpointId :: breakpoint_id(), async: boolean()) :: %{}
   def remove_breakpoint(breakpoint_id, opts \\ []) do
     msg = %{
-      "breakpointId" => breakpoint_id
+      "breakpointId" => breakpoint_id,
+      "method" => "Debugger.removeBreakpoint"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -213,7 +224,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   @spec restart_frame(callFrameId :: call_frame_id(), async: boolean()) :: %{}
   def restart_frame(call_frame_id, opts \\ []) do
     msg = %{
-      "callFrameId" => call_frame_id
+      "callFrameId" => call_frame_id,
+      "method" => "Debugger.restartFrame"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -226,7 +238,9 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   """
   @spec resume(terminate_on_resume: boolean(), async: boolean()) :: %{}
   def resume(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Debugger.resume"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -248,7 +262,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   def search_in_content(script_id, query, opts \\ []) do
     msg = %{
       "scriptId" => script_id,
-      "query" => query
+      "query" => query,
+      "method" => "Debugger.searchInContent"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -266,7 +281,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   @spec set_async_call_stack_depth(maxDepth :: integer(), async: boolean()) :: %{}
   def set_async_call_stack_depth(max_depth, opts \\ []) do
     msg = %{
-      "maxDepth" => max_depth
+      "maxDepth" => max_depth,
+      "method" => "Debugger.setAsyncCallStackDepth"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -280,7 +296,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   @spec set_breakpoint(location :: location(), condition: String.t(), async: boolean()) :: %{}
   def set_breakpoint(location, opts \\ []) do
     msg = %{
-      "location" => location
+      "location" => location,
+      "method" => "Debugger.setBreakpoint"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -305,7 +322,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
         ) :: %{}
   def set_breakpoint_by_url(line_number, opts \\ []) do
     msg = %{
-      "lineNumber" => line_number
+      "lineNumber" => line_number,
+      "method" => "Debugger.setBreakpointByUrl"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -323,7 +341,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   @spec set_breakpoints_active(active :: boolean(), async: boolean()) :: %{}
   def set_breakpoints_active(active, opts \\ []) do
     msg = %{
-      "active" => active
+      "active" => active,
+      "method" => "Debugger.setBreakpointsActive"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -337,7 +356,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   @spec set_instrumentation_breakpoint(instrumentation :: String.t(), async: boolean()) :: %{}
   def set_instrumentation_breakpoint(instrumentation, opts \\ []) do
     msg = %{
-      "instrumentation" => instrumentation
+      "instrumentation" => instrumentation,
+      "method" => "Debugger.setInstrumentationBreakpoint"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -351,7 +371,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   @spec set_pause_on_exceptions(state :: String.t(), async: boolean()) :: %{}
   def set_pause_on_exceptions(state, opts \\ []) do
     msg = %{
-      "state" => state
+      "state" => state,
+      "method" => "Debugger.setPauseOnExceptions"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -369,7 +390,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   def set_script_source(script_id, script_source, opts \\ []) do
     msg = %{
       "scriptId" => script_id,
-      "scriptSource" => script_source
+      "scriptSource" => script_source,
+      "method" => "Debugger.setScriptSource"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -387,7 +409,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   @spec set_skip_all_pauses(skip :: boolean(), async: boolean()) :: %{}
   def set_skip_all_pauses(skip, opts \\ []) do
     msg = %{
-      "skip" => skip
+      "skip" => skip,
+      "method" => "Debugger.setSkipAllPauses"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -410,7 +433,8 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
       "scopeNumber" => scope_number,
       "variableName" => variable_name,
       "newValue" => new_value,
-      "callFrameId" => call_frame_id
+      "callFrameId" => call_frame_id,
+      "method" => "Debugger.setVariableValue"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -423,7 +447,9 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   """
   @spec step_into(break_on_async_call: boolean(), async: boolean()) :: %{}
   def step_into(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Debugger.stepInto"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -439,7 +465,9 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   """
   @spec step_out(async: boolean()) :: %{}
   def step_out(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Debugger.stepOut"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -451,7 +479,9 @@ defmodule Chromex.DevtoolsProtocol.Debugger do
   """
   @spec step_over(async: boolean()) :: %{}
   def step_over(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Debugger.stepOver"
+    }
 
     async = Keyword.get(opts, :async, false)
 

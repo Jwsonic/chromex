@@ -96,7 +96,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec describe_node(depth: integer(), pierce: boolean(), async: boolean()) :: %{}
   def describe_node(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.describeNode"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -112,7 +114,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec disable(async: boolean()) :: %{}
   def disable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.disable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -124,7 +128,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec enable(async: boolean()) :: %{}
   def enable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.enable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -136,7 +142,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec focus(async: boolean()) :: %{}
   def focus(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.focus"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -149,7 +157,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @spec get_attributes(nodeId :: node_id(), async: boolean()) :: %{}
   def get_attributes(node_id, opts \\ []) do
     msg = %{
-      "nodeId" => node_id
+      "nodeId" => node_id,
+      "method" => "DOM.getAttributes"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -162,7 +171,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec get_box_model(async: boolean()) :: %{}
   def get_box_model(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.getBoxModel"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -174,7 +185,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec get_document(depth: integer(), pierce: boolean(), async: boolean()) :: %{}
   def get_document(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.getDocument"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -190,7 +203,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec get_flattened_document(depth: integer(), pierce: boolean(), async: boolean()) :: %{}
   def get_flattened_document(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.getFlattenedDocument"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -212,7 +227,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   def get_node_for_location(x, y, opts \\ []) do
     msg = %{
       "x" => x,
-      "y" => y
+      "y" => y,
+      "method" => "DOM.getNodeForLocation"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -229,7 +245,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec get_outer_html(async: boolean()) :: %{}
   def get_outer_html(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.getOuterHTML"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -241,7 +259,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec hide_highlight(async: boolean()) :: %{}
   def hide_highlight(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.hideHighlight"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -253,7 +273,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec highlight_node(async: boolean()) :: %{}
   def highlight_node(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.highlightNode"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -265,7 +287,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec highlight_rect(async: boolean()) :: %{}
   def highlight_rect(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.highlightRect"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -279,7 +303,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   def move_to(node_id, target_node_id, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "targetNodeId" => target_node_id
+      "targetNodeId" => target_node_id,
+      "method" => "DOM.moveTo"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -294,7 +319,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   def query_selector(node_id, selector, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "selector" => selector
+      "selector" => selector,
+      "method" => "DOM.querySelector"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -309,7 +335,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   def query_selector_all(node_id, selector, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "selector" => selector
+      "selector" => selector,
+      "method" => "DOM.querySelectorAll"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -324,7 +351,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   def remove_attribute(node_id, name, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "name" => name
+      "name" => name,
+      "method" => "DOM.removeAttribute"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -338,7 +366,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @spec remove_node(nodeId :: node_id(), async: boolean()) :: %{}
   def remove_node(node_id, opts \\ []) do
     msg = %{
-      "nodeId" => node_id
+      "nodeId" => node_id,
+      "method" => "DOM.removeNode"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -356,7 +385,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
         ) :: %{}
   def request_child_nodes(node_id, opts \\ []) do
     msg = %{
-      "nodeId" => node_id
+      "nodeId" => node_id,
+      "method" => "DOM.requestChildNodes"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -374,7 +404,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @spec request_node(objectId :: Runtime.remote_object_id(), async: boolean()) :: %{}
   def request_node(object_id, opts \\ []) do
     msg = %{
-      "objectId" => object_id
+      "objectId" => object_id,
+      "method" => "DOM.requestNode"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -387,7 +418,9 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   """
   @spec resolve_node(object_group: String.t(), async: boolean()) :: %{}
   def resolve_node(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "DOM.resolveNode"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -408,7 +441,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
     msg = %{
       "nodeId" => node_id,
       "name" => name,
-      "value" => value
+      "value" => value,
+      "method" => "DOM.setAttributeValue"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -426,7 +460,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   def set_attributes_as_text(node_id, text, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "text" => text
+      "text" => text,
+      "method" => "DOM.setAttributesAsText"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -444,7 +479,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   @spec set_file_input_files(files :: [String.t()], async: boolean()) :: %{}
   def set_file_input_files(files, opts \\ []) do
     msg = %{
-      "files" => files
+      "files" => files,
+      "method" => "DOM.setFileInputFiles"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -459,7 +495,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   def set_node_name(node_id, name, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "name" => name
+      "name" => name,
+      "method" => "DOM.setNodeName"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -474,7 +511,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   def set_node_value(node_id, value, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "value" => value
+      "value" => value,
+      "method" => "DOM.setNodeValue"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -489,7 +527,8 @@ defmodule Chromex.DevtoolsProtocol.Dom do
   def set_outer_html(node_id, outer_html, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "outerHTML" => outer_html
+      "outerHTML" => outer_html,
+      "method" => "DOM.setOuterHTML"
     }
 
     async = Keyword.get(opts, :async, false)

@@ -52,7 +52,9 @@ defmodule Chromex.DevtoolsProtocol.Browser do
   """
   @spec close(async: boolean()) :: %{}
   def close(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Browser.close"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -64,7 +66,9 @@ defmodule Chromex.DevtoolsProtocol.Browser do
   """
   @spec get_version(async: boolean()) :: %{}
   def get_version(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Browser.getVersion"
+    }
 
     async = Keyword.get(opts, :async, false)
 

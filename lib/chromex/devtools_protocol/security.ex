@@ -79,7 +79,9 @@ defmodule Chromex.DevtoolsProtocol.Security do
   """
   @spec disable(async: boolean()) :: %{}
   def disable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Security.disable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -91,7 +93,9 @@ defmodule Chromex.DevtoolsProtocol.Security do
   """
   @spec enable(async: boolean()) :: %{}
   def enable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Security.enable"
+    }
 
     async = Keyword.get(opts, :async, false)
 

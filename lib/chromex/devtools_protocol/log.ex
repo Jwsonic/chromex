@@ -28,7 +28,9 @@ defmodule Chromex.DevtoolsProtocol.Log do
   """
   @spec clear(async: boolean()) :: %{}
   def clear(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Log.clear"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -40,7 +42,9 @@ defmodule Chromex.DevtoolsProtocol.Log do
   """
   @spec disable(async: boolean()) :: %{}
   def disable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Log.disable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -52,7 +56,9 @@ defmodule Chromex.DevtoolsProtocol.Log do
   """
   @spec enable(async: boolean()) :: %{}
   def enable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Log.enable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -65,7 +71,8 @@ defmodule Chromex.DevtoolsProtocol.Log do
   @spec start_violations_report(config :: [violation_setting()], async: boolean()) :: %{}
   def start_violations_report(config, opts \\ []) do
     msg = %{
-      "config" => config
+      "config" => config,
+      "method" => "Log.startViolationsReport"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -78,7 +85,9 @@ defmodule Chromex.DevtoolsProtocol.Log do
   """
   @spec stop_violations_report(async: boolean()) :: %{}
   def stop_violations_report(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Log.stopViolationsReport"
+    }
 
     async = Keyword.get(opts, :async, false)
 

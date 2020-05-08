@@ -26,7 +26,8 @@ defmodule Chromex.DevtoolsProtocol.Target do
   @spec activate_target(targetId :: target_id(), async: boolean()) :: %{}
   def activate_target(target_id, opts \\ []) do
     msg = %{
-      "targetId" => target_id
+      "targetId" => target_id,
+      "method" => "Target.activateTarget"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -40,7 +41,8 @@ defmodule Chromex.DevtoolsProtocol.Target do
   @spec attach_to_target(targetId :: target_id(), flatten: boolean(), async: boolean()) :: %{}
   def attach_to_target(target_id, opts \\ []) do
     msg = %{
-      "targetId" => target_id
+      "targetId" => target_id,
+      "method" => "Target.attachToTarget"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -58,7 +60,8 @@ defmodule Chromex.DevtoolsProtocol.Target do
   @spec close_target(targetId :: target_id(), async: boolean()) :: %{}
   def close_target(target_id, opts \\ []) do
     msg = %{
-      "targetId" => target_id
+      "targetId" => target_id,
+      "method" => "Target.closeTarget"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -79,7 +82,8 @@ defmodule Chromex.DevtoolsProtocol.Target do
         ) :: %{}
   def create_target(url, opts \\ []) do
     msg = %{
-      "url" => url
+      "url" => url,
+      "method" => "Target.createTarget"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -97,7 +101,9 @@ defmodule Chromex.DevtoolsProtocol.Target do
   """
   @spec detach_from_target(async: boolean()) :: %{}
   def detach_from_target(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Target.detachFromTarget"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -109,7 +115,9 @@ defmodule Chromex.DevtoolsProtocol.Target do
   """
   @spec get_targets(async: boolean()) :: %{}
   def get_targets(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Target.getTargets"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -122,7 +130,8 @@ defmodule Chromex.DevtoolsProtocol.Target do
   @spec set_discover_targets(discover :: boolean(), async: boolean()) :: %{}
   def set_discover_targets(discover, opts \\ []) do
     msg = %{
-      "discover" => discover
+      "discover" => discover,
+      "method" => "Target.setDiscoverTargets"
     }
 
     async = Keyword.get(opts, :async, false)

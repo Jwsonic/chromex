@@ -70,7 +70,9 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
   """
   @spec disable(async: boolean()) :: %{}
   def disable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Profiler.disable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -82,7 +84,9 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
   """
   @spec enable(async: boolean()) :: %{}
   def enable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Profiler.enable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -94,7 +98,9 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
   """
   @spec get_best_effort_coverage(async: boolean()) :: %{}
   def get_best_effort_coverage(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Profiler.getBestEffortCoverage"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -107,7 +113,8 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
   @spec set_sampling_interval(interval :: integer(), async: boolean()) :: %{}
   def set_sampling_interval(interval, opts \\ []) do
     msg = %{
-      "interval" => interval
+      "interval" => interval,
+      "method" => "Profiler.setSamplingInterval"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -120,7 +127,9 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
   """
   @spec start(async: boolean()) :: %{}
   def start(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Profiler.start"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -137,7 +146,9 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
           async: boolean()
         ) :: %{}
   def start_precise_coverage(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Profiler.startPreciseCoverage"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -153,7 +164,9 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
   """
   @spec stop(async: boolean()) :: %{}
   def stop(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Profiler.stop"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -165,7 +178,9 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
   """
   @spec stop_precise_coverage(async: boolean()) :: %{}
   def stop_precise_coverage(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Profiler.stopPreciseCoverage"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -177,7 +192,9 @@ defmodule Chromex.DevtoolsProtocol.Profiler do
   """
   @spec take_precise_coverage(async: boolean()) :: %{}
   def take_precise_coverage(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Profiler.takePreciseCoverage"
+    }
 
     async = Keyword.get(opts, :async, false)
 

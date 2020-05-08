@@ -286,7 +286,9 @@ defmodule Chromex.DevtoolsProtocol.Network do
   """
   @spec clear_browser_cache(async: boolean()) :: %{}
   def clear_browser_cache(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Network.clearBrowserCache"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -298,7 +300,9 @@ defmodule Chromex.DevtoolsProtocol.Network do
   """
   @spec clear_browser_cookies(async: boolean()) :: %{}
   def clear_browser_cookies(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Network.clearBrowserCookies"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -316,7 +320,8 @@ defmodule Chromex.DevtoolsProtocol.Network do
         ) :: %{}
   def delete_cookies(name, opts \\ []) do
     msg = %{
-      "name" => name
+      "name" => name,
+      "method" => "Network.deleteCookies"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -333,7 +338,9 @@ defmodule Chromex.DevtoolsProtocol.Network do
   """
   @spec disable(async: boolean()) :: %{}
   def disable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Network.disable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -361,7 +368,8 @@ defmodule Chromex.DevtoolsProtocol.Network do
       "offline" => offline,
       "latency" => latency,
       "downloadThroughput" => download_throughput,
-      "uploadThroughput" => upload_throughput
+      "uploadThroughput" => upload_throughput,
+      "method" => "Network.emulateNetworkConditions"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -379,7 +387,9 @@ defmodule Chromex.DevtoolsProtocol.Network do
           async: boolean()
         ) :: %{}
   def enable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Network.enable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -396,7 +406,9 @@ defmodule Chromex.DevtoolsProtocol.Network do
   """
   @spec get_all_cookies(async: boolean()) :: %{}
   def get_all_cookies(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Network.getAllCookies"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -408,7 +420,9 @@ defmodule Chromex.DevtoolsProtocol.Network do
   """
   @spec get_cookies(urls: [String.t()], async: boolean()) :: %{}
   def get_cookies(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Network.getCookies"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -425,7 +439,8 @@ defmodule Chromex.DevtoolsProtocol.Network do
   @spec get_request_post_data(requestId :: request_id(), async: boolean()) :: %{}
   def get_request_post_data(request_id, opts \\ []) do
     msg = %{
-      "requestId" => request_id
+      "requestId" => request_id,
+      "method" => "Network.getRequestPostData"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -439,7 +454,8 @@ defmodule Chromex.DevtoolsProtocol.Network do
   @spec get_response_body(requestId :: request_id(), async: boolean()) :: %{}
   def get_response_body(request_id, opts \\ []) do
     msg = %{
-      "requestId" => request_id
+      "requestId" => request_id,
+      "method" => "Network.getResponseBody"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -453,7 +469,8 @@ defmodule Chromex.DevtoolsProtocol.Network do
   @spec set_cache_disabled(cacheDisabled :: boolean(), async: boolean()) :: %{}
   def set_cache_disabled(cache_disabled, opts \\ []) do
     msg = %{
-      "cacheDisabled" => cache_disabled
+      "cacheDisabled" => cache_disabled,
+      "method" => "Network.setCacheDisabled"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -475,7 +492,8 @@ defmodule Chromex.DevtoolsProtocol.Network do
   def set_cookie(name, value, opts \\ []) do
     msg = %{
       "name" => name,
-      "value" => value
+      "value" => value,
+      "method" => "Network.setCookie"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -493,7 +511,8 @@ defmodule Chromex.DevtoolsProtocol.Network do
   @spec set_cookies(cookies :: [cookie_param()], async: boolean()) :: %{}
   def set_cookies(cookies, opts \\ []) do
     msg = %{
-      "cookies" => cookies
+      "cookies" => cookies,
+      "method" => "Network.setCookies"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -507,7 +526,8 @@ defmodule Chromex.DevtoolsProtocol.Network do
   @spec set_extra_http_headers(headers :: headers(), async: boolean()) :: %{}
   def set_extra_http_headers(headers, opts \\ []) do
     msg = %{
-      "headers" => headers
+      "headers" => headers,
+      "method" => "Network.setExtraHTTPHeaders"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -525,7 +545,8 @@ defmodule Chromex.DevtoolsProtocol.Network do
         ) :: %{}
   def set_user_agent_override(user_agent, opts \\ []) do
     msg = %{
-      "userAgent" => user_agent
+      "userAgent" => user_agent,
+      "method" => "Network.setUserAgentOverride"
     }
 
     async = Keyword.get(opts, :async, false)

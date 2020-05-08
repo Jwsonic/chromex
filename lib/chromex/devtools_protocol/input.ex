@@ -40,7 +40,8 @@ defmodule Chromex.DevtoolsProtocol.Input do
         ) :: %{}
   def dispatch_key_event(type, opts \\ []) do
     msg = %{
-      "type" => type
+      "type" => type,
+      "method" => "Input.dispatchKeyEvent"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -88,7 +89,8 @@ defmodule Chromex.DevtoolsProtocol.Input do
     msg = %{
       "type" => type,
       "x" => x,
-      "y" => y
+      "y" => y,
+      "method" => "Input.dispatchMouseEvent"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -111,7 +113,8 @@ defmodule Chromex.DevtoolsProtocol.Input do
   def dispatch_touch_event(type, touch_points, opts \\ []) do
     msg = %{
       "type" => type,
-      "touchPoints" => touch_points
+      "touchPoints" => touch_points,
+      "method" => "Input.dispatchTouchEvent"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -129,7 +132,8 @@ defmodule Chromex.DevtoolsProtocol.Input do
   @spec set_ignore_input_events(ignore :: boolean(), async: boolean()) :: %{}
   def set_ignore_input_events(ignore, opts \\ []) do
     msg = %{
-      "ignore" => ignore
+      "ignore" => ignore,
+      "method" => "Input.setIgnoreInputEvents"
     }
 
     async = Keyword.get(opts, :async, false)

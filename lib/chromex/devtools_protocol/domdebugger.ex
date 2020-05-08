@@ -30,7 +30,8 @@ defmodule Chromex.DevtoolsProtocol.Domdebugger do
         ) :: %{}
   def get_event_listeners(object_id, opts \\ []) do
     msg = %{
-      "objectId" => object_id
+      "objectId" => object_id,
+      "method" => "DOMDebugger.getEventListeners"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -51,7 +52,8 @@ defmodule Chromex.DevtoolsProtocol.Domdebugger do
   def remove_dom_breakpoint(node_id, type, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "type" => type
+      "type" => type,
+      "method" => "DOMDebugger.removeDOMBreakpoint"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -68,7 +70,8 @@ defmodule Chromex.DevtoolsProtocol.Domdebugger do
         ) :: %{}
   def remove_event_listener_breakpoint(event_name, opts \\ []) do
     msg = %{
-      "eventName" => event_name
+      "eventName" => event_name,
+      "method" => "DOMDebugger.removeEventListenerBreakpoint"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -86,7 +89,8 @@ defmodule Chromex.DevtoolsProtocol.Domdebugger do
   @spec remove_xhr_breakpoint(url :: String.t(), async: boolean()) :: %{}
   def remove_xhr_breakpoint(url, opts \\ []) do
     msg = %{
-      "url" => url
+      "url" => url,
+      "method" => "DOMDebugger.removeXHRBreakpoint"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -103,7 +107,8 @@ defmodule Chromex.DevtoolsProtocol.Domdebugger do
   def set_dom_breakpoint(node_id, type, opts \\ []) do
     msg = %{
       "nodeId" => node_id,
-      "type" => type
+      "type" => type,
+      "method" => "DOMDebugger.setDOMBreakpoint"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -120,7 +125,8 @@ defmodule Chromex.DevtoolsProtocol.Domdebugger do
         ) :: %{}
   def set_event_listener_breakpoint(event_name, opts \\ []) do
     msg = %{
-      "eventName" => event_name
+      "eventName" => event_name,
+      "method" => "DOMDebugger.setEventListenerBreakpoint"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -138,7 +144,8 @@ defmodule Chromex.DevtoolsProtocol.Domdebugger do
   @spec set_xhr_breakpoint(url :: String.t(), async: boolean()) :: %{}
   def set_xhr_breakpoint(url, opts \\ []) do
     msg = %{
-      "url" => url
+      "url" => url,
+      "method" => "DOMDebugger.setXHRBreakpoint"
     }
 
     async = Keyword.get(opts, :async, false)

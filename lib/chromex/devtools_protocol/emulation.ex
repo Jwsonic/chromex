@@ -16,7 +16,9 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
   """
   @spec can_emulate(async: boolean()) :: %{}
   def can_emulate(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Emulation.canEmulate"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -28,7 +30,9 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
   """
   @spec clear_device_metrics_override(async: boolean()) :: %{}
   def clear_device_metrics_override(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Emulation.clearDeviceMetricsOverride"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -40,7 +44,9 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
   """
   @spec clear_geolocation_override(async: boolean()) :: %{}
   def clear_geolocation_override(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Emulation.clearGeolocationOverride"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -52,7 +58,9 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
   """
   @spec set_default_background_color_override(async: boolean()) :: %{}
   def set_default_background_color_override(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Emulation.setDefaultBackgroundColorOverride"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -80,7 +88,8 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
       "width" => width,
       "height" => height,
       "deviceScaleFactor" => device_scale_factor,
-      "mobile" => mobile
+      "mobile" => mobile,
+      "method" => "Emulation.setDeviceMetricsOverride"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -102,7 +111,9 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
   @spec set_emulated_media(media: String.t(), features: [media_feature()], async: boolean()) ::
           %{}
   def set_emulated_media(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Emulation.setEmulatedMedia"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -123,7 +134,9 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
           async: boolean()
         ) :: %{}
   def set_geolocation_override(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Emulation.setGeolocationOverride"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -140,7 +153,8 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
   @spec set_script_execution_disabled(value :: boolean(), async: boolean()) :: %{}
   def set_script_execution_disabled(value, opts \\ []) do
     msg = %{
-      "value" => value
+      "value" => value,
+      "method" => "Emulation.setScriptExecutionDisabled"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -157,7 +171,8 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
         ) :: %{}
   def set_touch_emulation_enabled(enabled, opts \\ []) do
     msg = %{
-      "enabled" => enabled
+      "enabled" => enabled,
+      "method" => "Emulation.setTouchEmulationEnabled"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -179,7 +194,8 @@ defmodule Chromex.DevtoolsProtocol.Emulation do
         ) :: %{}
   def set_user_agent_override(user_agent, opts \\ []) do
     msg = %{
-      "userAgent" => user_agent
+      "userAgent" => user_agent,
+      "method" => "Emulation.setUserAgentOverride"
     }
 
     async = Keyword.get(opts, :async, false)

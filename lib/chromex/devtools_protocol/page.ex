@@ -150,7 +150,8 @@ defmodule Chromex.DevtoolsProtocol.Page do
         ) :: %{}
   def add_script_to_evaluate_on_new_document(source, opts \\ []) do
     msg = %{
-      "source" => source
+      "source" => source,
+      "method" => "Page.addScriptToEvaluateOnNewDocument"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -167,7 +168,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   """
   @spec bring_to_front(async: boolean()) :: %{}
   def bring_to_front(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.bringToFront"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -184,7 +187,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
           async: boolean()
         ) :: %{}
   def capture_screenshot(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.captureScreenshot"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -205,7 +210,8 @@ defmodule Chromex.DevtoolsProtocol.Page do
         ) :: %{}
   def create_isolated_world(frame_id, opts \\ []) do
     msg = %{
-      "frameId" => frame_id
+      "frameId" => frame_id,
+      "method" => "Page.createIsolatedWorld"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -222,7 +228,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   """
   @spec disable(async: boolean()) :: %{}
   def disable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.disable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -234,7 +242,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   """
   @spec enable(async: boolean()) :: %{}
   def enable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.enable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -246,7 +256,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   """
   @spec get_app_manifest(async: boolean()) :: %{}
   def get_app_manifest(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.getAppManifest"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -258,7 +270,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   """
   @spec get_frame_tree(async: boolean()) :: %{}
   def get_frame_tree(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.getFrameTree"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -270,7 +284,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   """
   @spec get_layout_metrics(async: boolean()) :: %{}
   def get_layout_metrics(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.getLayoutMetrics"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -282,7 +298,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   """
   @spec get_navigation_history(async: boolean()) :: %{}
   def get_navigation_history(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.getNavigationHistory"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -296,7 +314,8 @@ defmodule Chromex.DevtoolsProtocol.Page do
           %{}
   def handle_java_script_dialog(accept, opts \\ []) do
     msg = %{
-      "accept" => accept
+      "accept" => accept,
+      "method" => "Page.handleJavaScriptDialog"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -314,7 +333,8 @@ defmodule Chromex.DevtoolsProtocol.Page do
   @spec navigate(url :: String.t(), referrer: String.t(), async: boolean()) :: %{}
   def navigate(url, opts \\ []) do
     msg = %{
-      "url" => url
+      "url" => url,
+      "method" => "Page.navigate"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -332,7 +352,8 @@ defmodule Chromex.DevtoolsProtocol.Page do
   @spec navigate_to_history_entry(entryId :: integer(), async: boolean()) :: %{}
   def navigate_to_history_entry(entry_id, opts \\ []) do
     msg = %{
-      "entryId" => entry_id
+      "entryId" => entry_id,
+      "method" => "Page.navigateToHistoryEntry"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -363,7 +384,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
           async: boolean()
         ) :: %{}
   def print_to_pdf(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.printToPDF"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -401,7 +424,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   @spec reload(ignore_cache: boolean(), script_to_evaluate_on_load: String.t(), async: boolean()) ::
           %{}
   def reload(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.reload"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -420,7 +445,8 @@ defmodule Chromex.DevtoolsProtocol.Page do
         ) :: %{}
   def remove_script_to_evaluate_on_new_document(identifier, opts \\ []) do
     msg = %{
-      "identifier" => identifier
+      "identifier" => identifier,
+      "method" => "Page.removeScriptToEvaluateOnNewDocument"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -433,7 +459,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   """
   @spec reset_navigation_history(async: boolean()) :: %{}
   def reset_navigation_history(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.resetNavigationHistory"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -447,7 +475,8 @@ defmodule Chromex.DevtoolsProtocol.Page do
   def set_document_content(frame_id, html, opts \\ []) do
     msg = %{
       "frameId" => frame_id,
-      "html" => html
+      "html" => html,
+      "method" => "Page.setDocumentContent"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -460,7 +489,9 @@ defmodule Chromex.DevtoolsProtocol.Page do
   """
   @spec stop_loading(async: boolean()) :: %{}
   def stop_loading(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Page.stopLoading"
+    }
 
     async = Keyword.get(opts, :async, false)
 

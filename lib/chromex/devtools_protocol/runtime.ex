@@ -154,7 +154,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
         ) :: %{}
   def await_promise(promise_object_id, opts \\ []) do
     msg = %{
-      "promiseObjectId" => promise_object_id
+      "promiseObjectId" => promise_object_id,
+      "method" => "Runtime.awaitPromise"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -181,7 +182,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
         ) :: %{}
   def call_function_on(function_declaration, opts \\ []) do
     msg = %{
-      "functionDeclaration" => function_declaration
+      "functionDeclaration" => function_declaration,
+      "method" => "Runtime.callFunctionOn"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -218,7 +220,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
     msg = %{
       "expression" => expression,
       "sourceURL" => source_url,
-      "persistScript" => persist_script
+      "persistScript" => persist_script,
+      "method" => "Runtime.compileScript"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -231,7 +234,9 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
   """
   @spec disable(async: boolean()) :: %{}
   def disable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Runtime.disable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -243,7 +248,9 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
   """
   @spec discard_console_entries(async: boolean()) :: %{}
   def discard_console_entries(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Runtime.discardConsoleEntries"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -255,7 +262,9 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
   """
   @spec enable(async: boolean()) :: %{}
   def enable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Runtime.enable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -280,7 +289,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
         ) :: %{}
   def evaluate(expression, opts \\ []) do
     msg = %{
-      "expression" => expression
+      "expression" => expression,
+      "method" => "Runtime.evaluate"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -318,7 +328,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
         ) :: %{}
   def get_properties(object_id, opts \\ []) do
     msg = %{
-      "objectId" => object_id
+      "objectId" => object_id,
+      "method" => "Runtime.getProperties"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -335,7 +346,9 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
   """
   @spec global_lexical_scope_names(async: boolean()) :: %{}
   def global_lexical_scope_names(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Runtime.globalLexicalScopeNames"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -351,7 +364,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
         ) :: %{}
   def query_objects(prototype_object_id, opts \\ []) do
     msg = %{
-      "prototypeObjectId" => prototype_object_id
+      "prototypeObjectId" => prototype_object_id,
+      "method" => "Runtime.queryObjects"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -369,7 +383,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
   @spec release_object(objectId :: remote_object_id(), async: boolean()) :: %{}
   def release_object(object_id, opts \\ []) do
     msg = %{
-      "objectId" => object_id
+      "objectId" => object_id,
+      "method" => "Runtime.releaseObject"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -383,7 +398,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
   @spec release_object_group(objectGroup :: String.t(), async: boolean()) :: %{}
   def release_object_group(object_group, opts \\ []) do
     msg = %{
-      "objectGroup" => object_group
+      "objectGroup" => object_group,
+      "method" => "Runtime.releaseObjectGroup"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -396,7 +412,9 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
   """
   @spec run_if_waiting_for_debugger(async: boolean()) :: %{}
   def run_if_waiting_for_debugger(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Runtime.runIfWaitingForDebugger"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -417,7 +435,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
         ) :: %{}
   def run_script(script_id, opts \\ []) do
     msg = %{
-      "scriptId" => script_id
+      "scriptId" => script_id,
+      "method" => "Runtime.runScript"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -446,7 +465,8 @@ defmodule Chromex.DevtoolsProtocol.Runtime do
   @spec set_async_call_stack_depth(maxDepth :: integer(), async: boolean()) :: %{}
   def set_async_call_stack_depth(max_depth, opts \\ []) do
     msg = %{
-      "maxDepth" => max_depth
+      "maxDepth" => max_depth,
+      "method" => "Runtime.setAsyncCallStackDepth"
     }
 
     async = Keyword.get(opts, :async, false)

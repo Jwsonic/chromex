@@ -11,7 +11,9 @@ defmodule Chromex.DevtoolsProtocol.Performance do
   """
   @spec disable(async: boolean()) :: %{}
   def disable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Performance.disable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -23,7 +25,9 @@ defmodule Chromex.DevtoolsProtocol.Performance do
   """
   @spec enable(time_domain: String.t(), async: boolean()) :: %{}
   def enable(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Performance.enable"
+    }
 
     async = Keyword.get(opts, :async, false)
 
@@ -39,7 +43,9 @@ defmodule Chromex.DevtoolsProtocol.Performance do
   """
   @spec get_metrics(async: boolean()) :: %{}
   def get_metrics(opts \\ []) do
-    msg = %{}
+    msg = %{
+      "method" => "Performance.getMetrics"
+    }
 
     async = Keyword.get(opts, :async, false)
 

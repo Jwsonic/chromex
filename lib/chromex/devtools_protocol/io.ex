@@ -12,7 +12,8 @@ defmodule Chromex.DevtoolsProtocol.Io do
   @spec close(handle :: stream_handle(), async: boolean()) :: %{}
   def close(handle, opts \\ []) do
     msg = %{
-      "handle" => handle
+      "handle" => handle,
+      "method" => "IO.close"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -27,7 +28,8 @@ defmodule Chromex.DevtoolsProtocol.Io do
           %{}
   def read(handle, opts \\ []) do
     msg = %{
-      "handle" => handle
+      "handle" => handle,
+      "method" => "IO.read"
     }
 
     async = Keyword.get(opts, :async, false)
@@ -45,7 +47,8 @@ defmodule Chromex.DevtoolsProtocol.Io do
   @spec resolve_blob(objectId :: Runtime.remote_object_id(), async: boolean()) :: %{}
   def resolve_blob(object_id, opts \\ []) do
     msg = %{
-      "objectId" => object_id
+      "objectId" => object_id,
+      "method" => "IO.resolveBlob"
     }
 
     async = Keyword.get(opts, :async, false)
