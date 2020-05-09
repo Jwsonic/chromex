@@ -1,0 +1,18 @@
+defmodule Chromex.DevtoolsProtocol.<%= domain_name %>.<%= module_name %> do
+  @moduledoc """
+  Result struct for <%= function_name %>.
+
+  <%= autogen_warning %>
+  """
+
+  @type t() :: %__MODULE__{
+    <%= types %>
+  }
+
+  @spec from_map(map()) :: t()
+  def from_map(%{ <%= map_contents %>}) do
+    %__MODULE__{
+      <%= struct_contents %>
+    }
+  end
+end

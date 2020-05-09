@@ -5,11 +5,6 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
   @file_dir Path.join(["lib", "chromex", "devtools_protocol"])
 
-  @reserved_names %{
-    "end" => "end_",
-    "node" => "node_"
-  }
-
   def run(_args) do
     domains =
       @protocol_files
@@ -47,6 +42,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
       include_reduce_opts: reduce_opts_needed?(domain),
       module_doc: module_doc,
       module_name: module_name,
+      result_modules: build_result_modules(domain),
       types: build_types(domain)
     ]
 
@@ -89,8 +85,8 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
       |> Enum.map(&to_spec/1)
       |> Enum.zip(properties)
       |> Enum.map(fn
-        {spec, %{"name" => prop, "optional" => true}} -> "optional(:\"#{prop}\") => #{spec}"
-        {spec, %{"name" => prop}} -> "required(:\"#{prop}\") => #{spec}"
+        {spec, %{"name" => prop, "optional" => true}} -> "optional(:#{prop}) => #{spec}"
+        {spec, %{"name" => prop}} -> "required(:#{prop}) => #{spec}"
       end)
       |> Enum.join(", ")
 
@@ -163,6 +159,11 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
   @function_template "function_template.eex"
 
+  @reserved_names %{
+    "end" => "end_",
+    "node" => "node_"
+  }
+
   defp build_functions(%{"commands" => commands, "domain" => domain_name, "types" => types}) do
     allowed_types = MapSet.new(types)
 
@@ -228,6 +229,22 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
       signature_params = join_params(signature_params)
 
+      spec_result_contents =
+        command
+        |> Map.get("returns", [])
+        |> Enum.map(fn %{"name" => name} = return ->
+          prefix =
+            case Map.get(return, "description") do
+              nil -> ""
+              description -> "# #{description}\n"
+            end
+
+          "#{prefix}\"#{name}\" => #{to_spec(return)}"
+        end)
+        |> Enum.join(",\n")
+
+      spec_result = "{:ok, %{#{spec_result_contents}}} | {:error, String.t()}"
+
       bindings = [
         doc: doc,
         msg_contents: msg_contents,
@@ -235,7 +252,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
         param_keys: param_keys,
         signature_params: signature_params,
         spec_params: spec_params,
-        spec_result: "%{}"
+        spec_result: spec_result
       ]
 
       @function_template
@@ -245,8 +262,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
   end
 
   defp build_types(%{"types" => types}) do
-    types
-    |> Enum.map(fn type ->
+    Enum.map(types, fn type ->
       name = type |> Map.get("id") |> Macro.underscore() |> (&Map.get(@reserved_names, &1, &1)).()
 
       spec = to_spec(type)
@@ -265,6 +281,12 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
       "#{prepend}#{doc}\n@type #{name} :: #{spec}"
     end)
+  end
+
+  @result_modules_template "result_modules_template.eex"
+
+  defp build_result_modules(domain) do
+    []
   end
 
   @module_template "module_template.eex"

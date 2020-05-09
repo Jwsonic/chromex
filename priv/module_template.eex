@@ -1,6 +1,9 @@
+<%= for module <- result_modules do %>
+<%= module %>
+<% end %>
 defmodule Chromex.DevtoolsProtocol.<%= module_name %> do
   @moduledoc """
-  <%= for line <- module_doc do %> <%= line %><% end %>
+<%= for line <- module_doc do %>  <%= line %><% end %>
   """
 
 
