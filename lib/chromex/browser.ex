@@ -16,12 +16,15 @@ defmodule Chromex.Browser do
   @default_state %{
     executable: "chromium",
     port: 0,
-    data_dir: "chromex"
+    data_dir: "chromex",
+    headless: false
   }
 
   @impl true
   def init(opts) do
-    state =
+    Process.flag(:trap_exit, true)
+
+    port =
       opts
       |> Enum.into(@default_state)
       |> find_execuatble!()
@@ -29,16 +32,16 @@ defmodule Chromex.Browser do
       |> build_args!()
       |> spawn_browser!()
 
-    {:ok, state}
+    {:ok, %{port: port}}
   end
 
-  @spec send(msg :: map(), async: boolean()) :: map() | :ok
-  def send(msg, opts) do
-    GenServer.call(__MODULE__, {:send, msg, opts})
+  @spec send(msg :: map()) :: map() | :ok
+  def send(msg) do
+    GenServer.call(__MODULE__, {:send, msg})
   end
 
   @impl true
-  def handle_call({:send, msg, _opts}, _from, %{socket: socket} = state) when is_map(msg) do
+  def handle_call({:send, msg}, _from, %{socket: socket} = state) when is_map(msg) do
     reply =
       msg
       |> Map.update("id", 1, fn id -> id end)
@@ -92,8 +95,15 @@ defmodule Chromex.Browser do
   end
 
   @impl true
+  def handle_info({:EXIT, _pid, :closed}, state) do
+    Logger.info("Websocket closed")
+
+    {:stop, :closed, state}
+  end
+
+  @impl true
   def handle_info(message, state) do
-    Logger.info("Received unhandled message #{message}.")
+    Logger.info("Received unhandled message #{inspect(message)}.")
 
     {:noreply, state}
   end
@@ -131,20 +141,32 @@ defmodule Chromex.Browser do
       "--user-data-dir=#{data_dir}"
     ]
 
+    args =
+      case Map.get(config, :headless, true) do
+        true -> ["--headless" | args]
+        _ -> args
+      end
+
     Map.put(config, :args, args)
   end
 
-  defp spawn_browser!(%{args: args, executable: executable} = config) do
+  @wrapper_script "chrome_wrapper.sh"
+
+  defp spawn_browser!(%{args: args, executable: executable}) do
+    wrapper_script = :chromex |> :code.priv_dir() |> Path.join(@wrapper_script)
+
     port =
-      Port.open({:spawn_executable, executable}, [
+      Port.open({:spawn_executable, wrapper_script}, [
         :binary,
         :exit_status,
         :stderr_to_stdout,
         line: 10_000,
-        args: args
+        args: [executable | args]
       ])
 
-    Map.put(config, :port, port)
+    Port.monitor(port)
+
+    port
   end
 
   @current_version "1.3"

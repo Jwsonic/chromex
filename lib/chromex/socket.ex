@@ -15,7 +15,7 @@ defmodule Chromex.Socket do
 
   @impl true
   def init(args) do
-    uri = args |> Keyword.get(:uri, "") |> URI.parse()
+    uri = Keyword.get(args, :uri, "")
     stream_to = Keyword.get(args, :stream_to)
 
     with {:ok, gun_pid} <- open(uri),
@@ -82,7 +82,9 @@ defmodule Chromex.Socket do
 
   # Private methods
 
-  defp open(%URI{host: host, port: port}) do
+  defp open(uri) do
+    %URI{host: host, port: port} = URI.parse(uri)
+
     host
     |> String.to_charlist()
     |> :gun.open(port)
