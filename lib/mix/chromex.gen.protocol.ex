@@ -19,6 +19,7 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
         |> stabilize("events", "name")
       end)
       |> key_by("domain")
+      |> Enum.reject(fn {name, _} -> name != "Browser" end)
 
     File.rm_rf!(@file_dir)
     File.mkdir_p!(@file_dir)
@@ -71,12 +72,6 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
     Enum.reduce(enumerable, %{}, fn map, acc ->
       Map.put(acc, map[key], map)
     end)
-  end
-
-  defp join_params([]), do: ""
-
-  defp join_params(params) do
-    params |> Enum.join(", ") |> Kernel.<>(", ")
   end
 
   defp to_spec(%{"type" => "object", "properties" => properties}) do
@@ -198,7 +193,6 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
 
       opt_spec_params =
         optional_params
-        |> Kernel.++([%{"name" => "async", "type" => "boolean"}])
         |> Enum.map(fn %{"name" => name} = msg ->
           Macro.underscore(name) <> ": " <> to_spec(msg)
         end)
@@ -227,23 +221,37 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
         |> Kernel.++(["\"method\" => \"#{domain_name}.#{name}\""])
         |> Enum.join(",\n")
 
-      signature_params = join_params(signature_params)
+      signature_params =
+        if param_keys != "", do: signature_params ++ ["opts \\\\ []"], else: signature_params
 
-      spec_result_contents =
-        command
-        |> Map.get("returns", [])
-        |> Enum.map(fn %{"name" => name} = return ->
-          prefix =
-            case Map.get(return, "description") do
-              nil -> ""
-              description -> "# #{description}\n"
-            end
+      signature_params = Enum.join(signature_params, ", ")
 
-          "#{prefix}\"#{name}\" => #{to_spec(return)}"
-        end)
-        |> Enum.join(",\n")
+      # spec_result_contents =
+      #   command
+      #   |> Map.get("returns", [])
+      #   |> Enum.map(fn %{"name" => name} = return ->
+      #     prefix =
+      #       case Map.get(return, "description") do
+      #         nil -> ""
+      #         description -> "# #{description}\n"
+      #       end
 
-      spec_result = "{:ok, %{#{spec_result_contents}}} | {:error, String.t()}"
+      #     "#{prefix}\"#{name}\" => #{to_spec(return)}"
+      #   end)
+      #   |> Enum.join(",\n")
+
+      # spec_result = "{:ok, %{#{spec_result_contents}}} | {:error, String.t()}"
+
+      spec_result =
+        case Map.get(command, "returns") do
+          nil ->
+            ":ok | {:error, String.t()}"
+
+          _returns ->
+            result_struct = name |> String.replace_prefix("get", "") |> String.capitalize()
+
+            "{:ok, Chromex.DevtoolsProtocol.#{domain_name}.#{result_struct}.t()} | {:error, String.t()}"
+        end
 
       bindings = [
         doc: doc,
@@ -283,10 +291,36 @@ defmodule Mix.Tasks.Chromex.Gen.Protocol do
     end)
   end
 
-  @result_modules_template "result_modules_template.eex"
+  @result_module_template "result_module_template.eex"
 
-  defp build_result_modules(domain) do
-    []
+  defp build_result_modules(%{"commands" => commands, "domain" => domain_name}) do
+    commands
+    |> Enum.filter(fn {_name, command} -> Map.has_key?(command, "returns") end)
+    |> Enum.map(fn {name, %{"returns" => returns}} ->
+      module_name = name |> String.replace_prefix("get", "") |> String.capitalize()
+
+      key_binding_pairs =
+        returns
+        |> Enum.map(&Map.get(&1, "name"))
+        |> Enum.reduce(%{}, &Map.put(&2, Macro.underscore(&1), &1))
+
+      types =
+        Enum.map(returns, fn %{"name" => name} = return ->
+          {Macro.underscore(name), to_spec(return)}
+        end)
+
+      bindings = [
+        domain_name: domain_name,
+        function_name: name,
+        map_contents: key_binding_pairs,
+        module_name: module_name,
+        struct_contents: key_binding_pairs,
+        struct_keys: Map.keys(key_binding_pairs),
+        types: types
+      ]
+
+      @result_module_template |> path_priv_file() |> EEx.eval_file(bindings)
+    end)
   end
 
   @module_template "module_template.eex"

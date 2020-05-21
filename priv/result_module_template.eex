@@ -1,18 +1,42 @@
 defmodule Chromex.DevtoolsProtocol.<%= domain_name %>.<%= module_name %> do
   @moduledoc """
-  Result struct for <%= function_name %>.
+  Result struct for `Chromex.DevtoolsProtocol.<%= domain_name %>.<%= function_name %>`.
 
-  <%= autogen_warning %>
+  This module was automatically generated. If you think there was is an error,
+  please report it [here](https://github.com/Jwsonic/chromex/issues).
   """
 
+  @enforce_keys [
+    <%= for key <- struct_keys do %>
+    :<%= key %>,
+    <% end %>
+  ]
+  defstruct [
+    <%= for key <- struct_keys do %>
+    :<%= key %>,
+    <% end %>
+  ]
+
   @type t() :: %__MODULE__{
-    <%= types %>
+    <%= for {key, type} <- types do %>
+    <%= key %>: <%= type %>,
+    <% end %>
   }
 
-  @spec from_map(map()) :: t()
-  def from_map(%{ <%= map_contents %>}) do
-    %__MODULE__{
-      <%= struct_contents %>
-    }
+  @spec from_map(map()) :: {:ok, t()} | {:error, String.t()}
+  def from_map(%{
+    <%= for {key, binding} <- map_contents do %>
+      "<%= key %>" => <%= binding %>,
+    <% end %>
+    }) do
+    {:ok, %__MODULE__{
+      <%= for {key, binding} <- struct_contents do %>
+        <%= key %>: <%= binding %>,
+      <% end %>
+    }}
+  end
+
+  def from_map(_map) do
+    {:error, "Missing keys."}
   end
 end
