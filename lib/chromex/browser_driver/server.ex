@@ -30,7 +30,7 @@ defmodule Chromex.BrowserDriver.Server do
 
   @impl true
   def handle_call({:send, msg}, _from, %{socket: socket} = state) when is_map(msg) do
-    # TODO: Migrate to async socket + ID Manager
+    # TODO: Migrate to async socket + ID Manager + opaque struct
     reply =
       msg
       |> Map.update("id", 1, fn id -> id end)
