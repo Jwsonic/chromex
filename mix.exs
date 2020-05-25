@@ -23,7 +23,6 @@ defmodule Chromex.MixProject do
     [
       {:gun, "~> 1.3"},
       {:jason, "~> 1.2"},
-
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
       {:stream_data, "~> 0.1", only: :test}
     ]

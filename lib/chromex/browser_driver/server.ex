@@ -11,13 +11,15 @@ defmodule Chromex.BrowserDriver.Server do
   def init(opts) do
     Process.flag(:trap_exit, true)
 
-    with {:ok, port} <- BrowserPort.start_link(opts) do
-      {:ok, %{port: port}}
+    with {:ok, _pid} <- MessageId.start_link(),
+         {:ok, port} <- BrowserPort.start_link(opts) do
+      {:ok, %{port: port, socket: nil}}
     end
   end
 
   @impl true
-  def handle_call({:send, message}, {from, _call}, %{socket: socket} = state) when is_map(message) do
+  def handle_call({:send, message}, {from, _call}, %{socket: socket} = state)
+      when is_map(message) do
     id = MessageId.next()
     message = Map.put(message, :id, id)
 
@@ -54,9 +56,10 @@ defmodule Chromex.BrowserDriver.Server do
     do_send(socket, @version_message, self())
 
     receive do
-      {:browser_message, %{"result" => %{"protocolVersion" => @devtools_version}}} ->
+      {:ws_message, %{"result" => %{"protocolVersion" => @devtools_version}}} ->
         {:noreply, state}
-      {:browser_message, %{"result"=> %{"protocolVersion" => version}}} ->
+
+      {:ws_message, %{"result" => %{"protocolVersion" => version}}} ->
         BrowserPort.close(port)
 
         {:stop, "Incompatible DevTools version: #{version}.", state}
@@ -89,7 +92,8 @@ defmodule Chromex.BrowserDriver.Server do
     {:noreply, state}
   end
 
-  defp do_send(socket, message, listener) when is_pid(socket) and is_map(message) and is_pid(listener) do
+  defp do_send(socket, message, listener)
+       when is_pid(socket) and is_map(message) and is_pid(listener) do
     id = MessageId.next()
     message = Map.put(message, :id, id)
 

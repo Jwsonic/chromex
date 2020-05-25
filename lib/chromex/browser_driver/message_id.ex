@@ -6,8 +6,8 @@ defmodule Chromex.BrowserDriver.MessageId do
   @table __MODULE__
   @initial_id 1
 
-  @spec start() :: Agent.on_start()
-  def start do
+  @spec start_link() :: Agent.on_start()
+  def start_link do
     :ets.new(@table, [:set, :protected, :named_table])
 
     Agent.start_link(fn -> @initial_id end, name: __MODULE__)

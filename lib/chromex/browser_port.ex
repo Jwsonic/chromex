@@ -3,6 +3,8 @@ defmodule Chromex.BrowserPort do
 
   @spec start_link(opts :: keyword()) :: GenServer.on_start()
   def start_link(opts) do
+    opts = Keyword.put(opts, :stream_to, self())
+
     GenServer.start_link(Server, opts, [])
   end
 

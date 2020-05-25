@@ -26,8 +26,13 @@ defmodule Chromex.BrowserPort.Server do
   end
 
   @impl true
+  def handle_call(:close, _from_pid, %{port: port} = state) do
+    {:reply, Port.close(port), state}
+  end
+
+  @impl true
   def handle_info({port, {:exit_status, status}}, %{port: port, stream_to: stream_to} = state) do
-    Process.send(stream_to, {:browser_exited, status}, [])
+    Process.send(stream_to, {:browser_exited, status}, [:noconnect])
 
     {:noreply, %{state | port: nil}}
   end
@@ -37,14 +42,14 @@ defmodule Chromex.BrowserPort.Server do
         {port, {:data, {:eol, "DevTools listening on " <> ws_uri}}},
         %{port: port, stream_to: stream_to} = state
       ) do
-    Process.send(stream_to, {:browser_started, ws_uri}, [])
+    Process.send(stream_to, {:browser_started, ws_uri}, [:noconnect])
 
     {:noreply, %{state | ws_uri: ws_uri}}
   end
 
   @impl true
-  def handle_call(:close, _from_pid, %{port: port} = state) do
-    {:reply, Port.close(port), state}
+  def handle_info({port, {:data, {:eol, _data}}}, %{port: port} = state) do
+    {:noreply, state}
   end
 
   defp find_execuatble!(%{executable: executable} = config) do

@@ -4,7 +4,7 @@ defmodule Chromex.BrowserDriver.MessageIdTest do
   alias Chromex.BrowserDriver.MessageId
 
   setup do
-    {:ok, _pid} = MessageId.start()
+    {:ok, _pid} = MessageId.start_link()
 
     :ok
   end
@@ -23,10 +23,10 @@ defmodule Chromex.BrowserDriver.MessageIdTest do
 
   describe "MessageId.subscribe/2" do
     test "it makes a record of id -> pid" do
-        id = MessageId.next()
-        MessageId.subscribe(id, self())
+      id = MessageId.next()
+      MessageId.subscribe(id, self())
 
-        assert MessageId.listener(id) == self()
+      assert MessageId.listener(id) == self()
     end
 
     test "it overwrites and existing listener" do
@@ -54,5 +54,4 @@ defmodule Chromex.BrowserDriver.MessageIdTest do
       assert MessageId.listener(id) == :none
     end
   end
-
 end

@@ -31,16 +31,15 @@ defmodule Chromex.WebSocket.Server do
         {:gun_ws, gun_pid, ref, frame},
         %{gun_pid: gun_pid, ref: ref, stream_to: stream_to} = state
       ) do
-
     case frame do
       {:text, message} ->
         case Jason.decode(message) do
           {:ok, message} ->
-            Process.send(stream_to, {:ws_message, message}, [])
-          _ ->
-            Process.send(stream_to, {:ws_message, message}, [])
-        end
+            Process.send(stream_to, {:ws_message, message}, [:noconnect])
 
+          _ ->
+            Process.send(stream_to, {:ws_message, message}, [:noconnect])
+        end
 
       frame ->
         Logger.info("Received WS frame: #{inspect(frame)}.")
@@ -67,7 +66,7 @@ defmodule Chromex.WebSocket.Server do
         {:gun_upgrade, gun_pid, ref, ["websocket"], _headers},
         %{gun_pid: gun_pid, ref: ref, stream_to: stream_to} = state
       ) do
-    Process.send(stream_to, {:ws_connect, :socket_closed}, [])
+    Process.send(stream_to, :ws_connect, [])
     {:noreply, state}
   end
 
