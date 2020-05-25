@@ -3,38 +3,27 @@ defmodule Chromex.BrowserDriver.Server do
 
   alias Chromex.WebSocket
   alias Chromex.BrowserPort
+  alias Chromex.BrowserDriver.MessageId
 
   require Logger
-
-  # Client methods
-
-  def start_link(opts) when is_list(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
-  end
-
-  # Server callbacks
 
   @impl true
   def init(opts) do
     Process.flag(:trap_exit, true)
 
-    with {:ok, port} <- BrowserPort.start(opts) do
+    with {:ok, port} <- BrowserPort.start_link(opts) do
       {:ok, %{port: port}}
     end
   end
 
-  @spec send(msg :: map()) :: {:ok, map} | {:error, String.t()}
-  def send(msg) do
-    GenServer.call(__MODULE__, {:send, msg})
-  end
-
   @impl true
-  def handle_call({:send, msg}, _from, %{socket: socket} = state) when is_map(msg) do
-    # TODO: Migrate to async socket + ID Manager + opaque struct
-    reply =
-      msg
-      |> Map.update("id", 1, fn id -> id end)
-      |> do_send(socket)
+  def handle_call({:send, message}, {from, _call}, %{socket: socket} = state) when is_map(message) do
+    id = MessageId.next()
+    message = Map.put(message, :id, id)
+
+    MessageId.subscribe(id, from)
+
+    reply = WebSocket.send(socket, message)
 
     {:reply, reply, state}
   end
@@ -42,7 +31,7 @@ defmodule Chromex.BrowserDriver.Server do
   # Port Callbacks
 
   @impl true
-  def handle_info({:ws_uri, ws_uri}, state) do
+  def handle_info({:browser_started, ws_uri}, state) do
     {:ok, socket} = WebSocket.connect(ws_uri)
 
     {:noreply, %{state | socket: socket}}
@@ -57,11 +46,26 @@ defmodule Chromex.BrowserDriver.Server do
 
   # Websocket callbacks
 
-  @impl true
-  def handle_info(:ws_connect, %{socket: socket} = state) do
-    verify_devtools_version!(socket)
+  @devtools_version "1.3"
+  @version_message %{"id" => 1, "method" => "Browser.getVersion"}
 
-    {:noreply, state}
+  @impl true
+  def handle_info(:ws_connect, %{port: port, socket: socket} = state) do
+    do_send(socket, @version_message, self())
+
+    receive do
+      {:browser_message, %{"result" => %{"protocolVersion" => @devtools_version}}} ->
+        {:noreply, state}
+      {:browser_message, %{"result"=> %{"protocolVersion" => version}}} ->
+        BrowserPort.close(port)
+
+        {:stop, "Incompatible DevTools version: #{version}.", state}
+    after
+      5_000 ->
+        BrowserPort.close(port)
+
+        {:stop, "DevTools version check timed out.", state}
+    end
   end
 
   @impl true
@@ -70,14 +74,12 @@ defmodule Chromex.BrowserDriver.Server do
   end
 
   @impl true
-  def handle_info({:ws_message, message}, state) do
-    case Jason.decode(message) do
-      {:ok, message} ->
-        Logger.info("Got message: #{inspect(message)}")
-
-      _ ->
-        {:noreply, state}
+  def handle_info({:ws_message, %{"id" => id}}, state) do
+    with {:ok, listener} <- MessageId.listener(id) do
+      Process.send(listener, {:browser_message}, [])
     end
+
+    {:noreply, state}
   end
 
   @impl true
@@ -87,39 +89,12 @@ defmodule Chromex.BrowserDriver.Server do
     {:noreply, state}
   end
 
-  # Private methods
+  defp do_send(socket, message, listener) when is_pid(socket) and is_map(message) and is_pid(listener) do
+    id = MessageId.next()
+    message = Map.put(message, :id, id)
 
-  @current_version "1.3"
-  @version_message %{"id" => 1, "method" => "Browser.getVersion"}
-  @close_message %{"id" => 1, "method" => "Browser.close"}
+    MessageId.subscribe(id, listener)
 
-  defp verify_devtools_version!(socket) do
-    case do_send(@version_message, socket) do
-      {:ok, %{"result" => %{"protocolVersion" => @current_version}}} ->
-        Logger.info("Devtools version match.")
-        :ok
-
-      _ ->
-        do_send(@close_message, socket)
-
-        raise(
-          "Your chrome instance does not support devtools protocol version #{@current_version}."
-        )
-    end
-  end
-
-  defp do_send(%{"id" => id} = msg, socket) do
-    Logger.info("Sending message: #{inspect(msg)}")
-
-    msg
-    |> Jason.encode!()
-    |> (&WebSocket.send(socket, &1)).()
-
-    receive do
-      {:ws_message, %{"id" => ^id} = message} ->
-        {:ok, message}
-    after
-      1_000 -> {:error, "Timed out."}
-    end
+    WebSocket.send(socket, message)
   end
 end

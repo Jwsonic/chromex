@@ -1,8 +1,8 @@
 defmodule Chromex.BrowserPort do
   alias Chromex.BrowserPort.Server
 
-  @spec start(opts :: keyword()) :: GenServer.on_start()
-  def start(opts) do
+  @spec start_link(opts :: keyword()) :: GenServer.on_start()
+  def start_link(opts) do
     GenServer.start_link(Server, opts, [])
   end
 

@@ -25,10 +25,10 @@ defmodule Chromex.BrowserDriver.MessageId do
     :ok
   end
 
-  @spec listener(id :: t()) :: pid() | :none
+  @spec listener(id :: t()) :: {:ok, pid()} | :none
   def listener(id) when is_integer(id) do
     case :ets.lookup(@table, id) do
-      [{^id, pid}] -> pid
+      [{^id, pid}] -> {:ok, pid}
       _ -> :none
     end
   end

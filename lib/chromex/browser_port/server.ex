@@ -37,7 +37,7 @@ defmodule Chromex.BrowserPort.Server do
         {port, {:data, {:eol, "DevTools listening on " <> ws_uri}}},
         %{port: port, stream_to: stream_to} = state
       ) do
-    Process.send(stream_to, {:ws_uri, ws_uri}, [])
+    Process.send(stream_to, {:browser_started, ws_uri}, [])
 
     {:noreply, %{state | ws_uri: ws_uri}}
   end
